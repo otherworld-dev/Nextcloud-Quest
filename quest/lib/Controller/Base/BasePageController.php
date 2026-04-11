@@ -12,6 +12,7 @@ use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IRequest;
 use OCP\IInitialStateService;
 use OCP\IUserSession;
+use OCP\L10N\IFactory as IL10NFactory;
 use OCP\Util;
 
 abstract class BasePageController extends Controller {
@@ -19,49 +20,36 @@ abstract class BasePageController extends Controller {
     protected $initialStateService;
     /** @var IUserSession */
     protected $userSession;
-    
+    /** @var IL10NFactory */
+    protected $l10nFactory;
+
     public function __construct(
         $appName,
         IRequest $request,
         IInitialStateService $initialStateService,
-        IUserSession $userSession
+        IUserSession $userSession,
+        IL10NFactory $l10nFactory
     ) {
         parent::__construct($appName, $request);
         $this->initialStateService = $initialStateService;
         $this->userSession = $userSession;
+        $this->l10nFactory = $l10nFactory;
     }
-    
+
     /**
-     * Render a page with common initialization
+     * Render a page with common initialization.
+     * All rendering is handled by Vue — we only load the webpack bundle and design tokens.
      */
     protected function renderPage(string $pageName, string $templateName, array $additionalScripts = [], array $additionalStyles = []): TemplateResponse {
         $user = $this->userSession->getUser();
-        
-        // Add common CSS files
-        Util::addStyle('quest', 'nextcloud-quest-unified');
-        
-        // Add additional styles for specific pages
-        foreach ($additionalStyles as $style) {
-            Util::addStyle('quest', $style);
-        }
-        
-        // Add core architecture scripts (always needed)
-        Util::addScript('quest', 'core/stats-service');
-        Util::addScript('quest', 'core/dom-updater');
-        Util::addScript('quest', 'core/quest-app');
-        
-        // Add common application layer scripts
-        Util::addScript('quest', 'navigation');
-        Util::addScript('quest', 'task-list-manager');
-        Util::addScript('quest', 'sidebar-character');
-        Util::addScript('quest', 'character-customizer');
-        
-        // Add page-specific scripts
-        foreach ($additionalScripts as $script) {
-            Util::addScript('quest', $script);
-        }
-        
-        // Provide user state
+
+        // Design tokens (CSS custom properties)
+        Util::addStyle('quest', 'base/variables');
+
+        // Vue app bundle (single entry point — handles all pages)
+        Util::addScript('quest', 'nextcloud-quest-main');
+
+        // Provide user state to Vue via loadState()
         $this->initialStateService->provideInitialState(
             'quest',
             'user',
@@ -70,24 +58,19 @@ abstract class BasePageController extends Controller {
                 'displayName' => $user->getDisplayName()
             ]
         );
-        
-        // Provide app configuration state
+
+        // Provide page config so Vue knows which page to render
         $this->initialStateService->provideInitialState(
             'quest',
             'config',
             [
                 'active_page' => $pageName,
-                'language' => \OC::$server->getL10NFactory()->get('quest')->getLanguageCode()
+                'language' => $this->l10nFactory->get('quest')->getLanguageCode()
             ]
         );
-        
-        // Prepare template variables
-        $templateVars = [
+
+        return new TemplateResponse('quest', $templateName, [
             'active_page' => $pageName,
-            'user_displayname' => $user->getDisplayName(),
-            'language' => \OC::$server->getL10NFactory()->get('quest')->getLanguageCode()
-        ];
-        
-        return new TemplateResponse('quest', $templateName, $templateVars);
+        ]);
     }
 }

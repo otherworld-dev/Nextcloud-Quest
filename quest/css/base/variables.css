@@ -8,8 +8,7 @@
     --sidebar-width: 240px;
     --sidebar-collapsed-width: 80px;
     --content-max-width: 1600px;
-    --header-height: 60px;
-    --nextcloud-topbar-height: 0px;
+    --header-height: 50px;
     
     /* Grid system */
     --grid-columns: 3;
@@ -119,3 +118,8 @@
         --grid-gap: 8px;
     }
 }
+
+/*
+ * Nextcloud integration overrides — applied via JS in main.js
+ * for reliable specificity. See main.js for details.
+ */

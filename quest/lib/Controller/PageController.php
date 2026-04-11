@@ -11,70 +11,52 @@ use OCA\NextcloudQuest\Controller\Base\BasePageController;
 use OCP\AppFramework\Http\TemplateResponse;
 
 class PageController extends BasePageController {
-    
+
     /**
-     * Main page
-     * 
      * @NoAdminRequired
      * @NoCSRFRequired
-     * @return TemplateResponse
      */
-    public function index() {
-        return $this->renderPage('dashboard', 'index', ['dashboard']);
-    }
-    
-    /**
-     * Dedicated quests page
-     * 
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     * @return TemplateResponse
-     */
-    public function quests() {
-        return $this->renderPage('quests', 'quests', ['quests-page']);
-    }
-    
-    /**
-     * Dedicated achievements page
-     * 
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     * @return TemplateResponse
-     */
-    public function achievements() {
-        return $this->renderPage('achievements', 'achievements', ['achievements']);
-    }
-    
-    /**
-     * Adventure Map page
-     *
-     * @NoAdminRequired
-     * @NoCSRFRequired
-     * @return TemplateResponse
-     */
-    public function adventure() {
-        return $this->renderPage('adventure', 'adventure', ['adventure-grid-map'], ['adventure-map']);
+    public function index(): TemplateResponse {
+        return $this->renderPage('dashboard', 'index');
     }
 
     /**
-     * Character customization page
-     *
      * @NoAdminRequired
      * @NoCSRFRequired
-     * @return TemplateResponse
      */
-    public function character() {
-        return $this->renderPage('character', 'character', ['character-page'], ['character-page']);
+    public function quests(): TemplateResponse {
+        return $this->renderPage('quests', 'quests');
     }
 
     /**
-     * Dedicated settings page
-     *
      * @NoAdminRequired
      * @NoCSRFRequired
-     * @return TemplateResponse
      */
-    public function settings() {
+    public function achievements(): TemplateResponse {
+        return $this->renderPage('achievements', 'achievements');
+    }
+
+    /**
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     */
+    public function adventure(): TemplateResponse {
+        return $this->renderPage('adventure', 'adventure');
+    }
+
+    /**
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     */
+    public function character(): TemplateResponse {
+        return $this->renderPage('character', 'character');
+    }
+
+    /**
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     */
+    public function settings(): TemplateResponse {
         return $this->renderPage('settings', 'settings');
     }
 }

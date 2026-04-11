@@ -5,8 +5,7 @@
  * @license GNU AGPL version 3 or any later version
  */
 
-style('quest', 'settings');
-script('quest', 'settings');
+// Legacy scripts removed — this panel uses inline functionality only
 ?>
 
 <div class="section" id="nextcloud-quest-settings">

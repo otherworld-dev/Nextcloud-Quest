@@ -2,114 +2,184 @@
  * @copyright Copyright (c) 2025 Quest Team
  *
  * @license GNU AGPL version 3 or any later version
- * 
- * Quest API Utility Functions
- * 
- * IMPORTANT: This file provides low-level API utilities only.
- * For stats data, use StatsManager.registerConsumer() instead of calling getUserStats() directly.
- * StatsManager provides caching, error handling, and unified event system.
+ *
+ * Quest API Service - Single source of truth for all API communication
  */
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 
 class QuestAPI {
-    constructor() {
-        this.baseURL = generateUrl('/apps/quest/api')
-    }
-    
-    /**
-     * Get user stats (utility function for StatsManager)
-     * NOTE: This should only be used by StatsManager. 
-     * All other components should use StatsManager.registerConsumer() instead.
-     * @returns {Promise<Object>}
-     * @deprecated Use StatsManager instead of calling this directly
-     */
-    async getUserStats() {
-        // api.getUserStats() should only be used by StatsManager
-        const response = await axios.get(`${this.baseURL}/stats`)
-        return response.data
-    }
-    
-    /**
-     * Get achievements
-     * @returns {Promise<Object>}
-     */
-    async getAchievements() {
-        const response = await axios.get(`${this.baseURL}/achievements`)
-        return response.data
-    }
-    
-    /**
-     * Complete a task
-     * @param {string} taskId 
-     * @param {string} taskTitle 
-     * @param {string} priority 
-     * @returns {Promise<Object>}
-     */
-    async completeTask(taskId, taskTitle, priority = 'medium') {
-        const response = await axios.post(`${this.baseURL}/complete-task`, {
-            taskId,
-            taskTitle,
-            priority
-        })
-        return response.data
-    }
-    
-    /**
-     * Get completion history
-     * @param {number} limit 
-     * @param {number} offset 
-     * @returns {Promise<Object>}
-     */
-    async getHistory(limit = 50, offset = 0) {
-        const response = await axios.get(`${this.baseURL}/history`, {
-            params: { limit, offset }
-        })
-        return response.data
-    }
-    
-    /**
-     * Get leaderboard
-     * @param {string} orderBy 
-     * @param {number} limit 
-     * @param {number} offset 
-     * @returns {Promise<Object>}
-     */
-    async getLeaderboard(orderBy = 'lifetime_xp', limit = 10, offset = 0) {
-        const response = await axios.get(`${this.baseURL}/leaderboard`, {
-            params: { orderBy, limit, offset }
-        })
-        return response.data
-    }
-    
-    /**
-     * Get user settings
-     * @returns {Promise<Object>}
-     */
-    async getSettings() {
-        const response = await axios.get(`${this.baseURL}/settings`)
-        return response.data
-    }
-    
-    /**
-     * Update user settings
-     * @param {Object} settings 
-     * @returns {Promise<Object>}
-     */
-    async updateSettings(settings) {
-        const response = await axios.put(`${this.baseURL}/settings`, settings)
-        return response.data
-    }
-    
-    /**
-     * Get quest lists from Tasks app
-     * @returns {Promise<Object>}
-     */
-    async getQuestLists() {
-        const response = await axios.get(`${this.baseURL}/quest-lists`)
-        return response.data
-    }
+
+	constructor() {
+		this.baseURL = generateUrl('/apps/quest/api')
+	}
+
+	// ─── Stats ───────────────────────────────────────────────
+
+	async getStats() {
+		const { data } = await axios.get(`${this.baseURL}/stats`)
+		return data
+	}
+
+	// ─── Tasks ───────────────────────────────────────────────
+
+	async getQuestLists() {
+		const { data } = await axios.get(`${this.baseURL}/quest-lists`)
+		return data
+	}
+
+	async completeTask(taskId, taskTitle, priority = 'medium') {
+		const { data } = await axios.post(`${this.baseURL}/complete-quest`, {
+			taskId,
+			taskTitle,
+			priority,
+		})
+		return data
+	}
+
+	// ─── Achievements ────────────────────────────────────────
+
+	async getAchievements() {
+		const { data } = await axios.get(`${this.baseURL}/achievements`)
+		return data
+	}
+
+	async getAchievementsByCategory() {
+		const { data } = await axios.get(`${this.baseURL}/achievements/categories`)
+		return data
+	}
+
+	async getRecentAchievements() {
+		const { data } = await axios.get(`${this.baseURL}/achievements/recent`)
+		return data
+	}
+
+	async getAchievementStats() {
+		const { data } = await axios.get(`${this.baseURL}/achievements/stats`)
+		return data
+	}
+
+	async getAchievementsByRarity(rarity) {
+		const { data } = await axios.get(`${this.baseURL}/achievements/rarity/${rarity}`)
+		return data
+	}
+
+	async getAchievementProgress(achievementKey) {
+		const { data } = await axios.get(`${this.baseURL}/achievements/progress/${achievementKey}`)
+		return data
+	}
+
+	// ─── History & Leaderboard ───────────────────────────────
+
+	async getHistory(limit = 50, offset = 0) {
+		const { data } = await axios.get(`${this.baseURL}/history`, {
+			params: { limit, offset },
+		})
+		return data
+	}
+
+	async getLeaderboard(orderBy = 'lifetime_xp', limit = 10, offset = 0) {
+		const { data } = await axios.get(`${this.baseURL}/leaderboard`, {
+			params: { orderBy, limit, offset },
+		})
+		return data
+	}
+
+	// ─── Character ───────────────────────────────────────────
+
+	async getCharacterData() {
+		const { data } = await axios.get(`${this.baseURL}/character/data`)
+		return data
+	}
+
+	async getAvailableItems() {
+		const { data } = await axios.get(`${this.baseURL}/character/items`)
+		return data
+	}
+
+	async getCustomizationData() {
+		const { data } = await axios.get(`${this.baseURL}/character/customization`)
+		return data
+	}
+
+	async updateAppearance(appearance) {
+		const { data } = await axios.put(`${this.baseURL}/character/appearance`, appearance)
+		return data
+	}
+
+	async equipItem(itemKey) {
+		const { data } = await axios.post(`${this.baseURL}/character/equip/${itemKey}`)
+		return data
+	}
+
+	async unequipItem(slot) {
+		const { data } = await axios.delete(`${this.baseURL}/character/unequip/${slot}`)
+		return data
+	}
+
+	async getAges() {
+		const { data } = await axios.get(`${this.baseURL}/character/ages`)
+		return data
+	}
+
+	async getProgressionStats() {
+		const { data } = await axios.get(`${this.baseURL}/character/progression`)
+		return data
+	}
+
+	// ─── Settings ────────────────────────────────────────────
+
+	async getSettings() {
+		const { data } = await axios.get(`${this.baseURL}/settings`)
+		return data
+	}
+
+	async updateSettings(settings) {
+		const { data } = await axios.put(`${this.baseURL}/settings`, settings)
+		return data
+	}
+
+	async getAvailableCalendars() {
+		const { data } = await axios.get(`${this.baseURL}/settings/calendars`)
+		return data
+	}
+
+	async exportData() {
+		const { data } = await axios.post(`${this.baseURL}/settings/export`)
+		return data
+	}
+
+	async importData(importData) {
+		const { data } = await axios.post(`${this.baseURL}/settings/import`, importData)
+		return data
+	}
+
+	async resetProgress() {
+		const { data } = await axios.post(`${this.baseURL}/settings/reset-progress`)
+		return data
+	}
+
+	async resetToDefaults() {
+		const { data } = await axios.post(`${this.baseURL}/settings/reset`)
+		return data
+	}
+
+	async createBackup() {
+		const { data } = await axios.post(`${this.baseURL}/settings/backup`)
+		return data
+	}
+
+	async getBackups() {
+		const { data } = await axios.get(`${this.baseURL}/settings/backups`)
+		return data
+	}
+
+	async restoreBackup(backupId) {
+		const { data } = await axios.post(`${this.baseURL}/settings/backup/${backupId}/restore`)
+		return data
+	}
+
 }
 
 export default new QuestAPI()
