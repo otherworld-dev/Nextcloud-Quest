@@ -81,25 +81,22 @@
 							class="task-item"
 							:class="{ completed: task.completed }"
 						>
-							<button
-								v-if="!task.completed"
-								class="task-complete-btn"
-								:disabled="loading.completingTask"
-								@click="handleComplete(task, list)"
+							<input
+								type="checkbox"
+								class="task-checkbox"
+								:checked="task.completed"
+								:disabled="loading.completingTask || task.completed"
+								@change="handleComplete(task, list)"
 								:title="'Complete: ' + (task.title || task.summary)"
 							>
-								<span class="check-circle" />
-							</button>
-							<span v-else class="task-done-icon">&#x2705;</span>
 
-							<div class="task-info">
-								<span class="task-title">{{ task.title || task.summary }}</span>
-								<span v-if="task.priority" class="task-priority" :class="getPriorityClass(task)">
+							<span class="task-title">{{ task.title || task.summary || 'Untitled task' }}</span>
+							<div class="task-meta">
+								<span class="task-priority" :class="getPriorityClass(task)">
 									{{ getPriorityLabel(task) }}
 								</span>
+								<span class="task-xp">+{{ getTaskXP(task) }}</span>
 							</div>
-
-							<span class="task-xp">+{{ getTaskXP(task) }} XP</span>
 						</div>
 
 						<div v-if="getFilteredTasks(list).length === 0" class="no-tasks">
@@ -279,6 +276,21 @@ export default {
 			}
 		},
 
+		formatDueDate(dateString) {
+			if (!dateString) return ''
+			try {
+				const d = new Date(dateString)
+				const now = new Date()
+				const diff = d - now
+				if (diff < 0) return 'Overdue'
+				if (diff < 86400000) return 'Today'
+				if (diff < 172800000) return 'Tomorrow'
+				return d.toLocaleDateString()
+			} catch (e) {
+				return ''
+			}
+		},
+
 		formatDate(dateString) {
 			if (!dateString) return ''
 			const d = new Date(dateString)
@@ -429,8 +441,8 @@ export default {
 /* ── Task list cards ── */
 .task-lists-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-	gap: 20px;
+	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+	gap: 16px;
 }
 
 .task-list-card {
@@ -439,6 +451,7 @@ export default {
 	border-radius: var(--radius-large);
 	overflow: hidden;
 	transition: box-shadow var(--transition-fast);
+	border-top: 3px solid var(--list-color);
 }
 
 .task-list-card:hover {
@@ -448,38 +461,36 @@ export default {
 .list-header {
 	display: flex;
 	align-items: center;
-	gap: 12px;
-	padding: 16px 20px;
+	gap: 10px;
+	padding: 10px 14px;
 	background: var(--color-background-hover);
 	border-bottom: 1px solid var(--color-border);
 }
 
 .list-color-bar {
-	width: 4px;
-	height: 32px;
-	border-radius: 2px;
-	background: var(--list-color);
+	display: none;
 }
 
 .list-name {
 	flex: 1;
 	font-size: var(--font-size-normal);
-	font-weight: 600;
+	font-weight: 700;
 	color: var(--color-main-text);
 	margin: 0;
 }
 
 .list-count {
-	font-size: var(--font-size-small);
+	font-size: 11px;
 	color: var(--color-text-lighter);
 	background: var(--color-background-dark);
-	padding: 2px 10px;
-	border-radius: 12px;
+	padding: 2px 8px;
+	border-radius: 10px;
+	font-weight: 600;
 }
 
 .list-tasks {
-	padding: 8px 12px;
-	max-height: 400px;
+	padding: 2px 0;
+	max-height: 200px;
 	overflow-y: auto;
 }
 
@@ -487,10 +498,15 @@ export default {
 .task-item {
 	display: flex;
 	align-items: center;
-	gap: 10px;
-	padding: 10px 12px;
-	border-radius: var(--radius-medium);
+	gap: 8px;
+	padding: 4px 12px;
 	transition: background var(--transition-fast);
+	border-bottom: 1px solid var(--color-border);
+	line-height: 1.3;
+}
+
+.task-item:last-child {
+	border-bottom: none;
 }
 
 .task-item:hover {
@@ -498,81 +514,80 @@ export default {
 }
 
 .task-item.completed {
-	opacity: 0.4;
+	opacity: 0.35;
 }
 
-.task-complete-btn {
-	width: 22px;
-	height: 22px;
-	border-radius: 50%;
-	border: 2px solid var(--color-border-dark);
-	background: none;
+.task-item.completed .task-title {
+	text-decoration: line-through;
+}
+
+.task-checkbox {
+	width: 15px;
+	height: 15px;
+	flex-shrink: 0;
 	cursor: pointer;
-	padding: 0;
-	flex-shrink: 0;
-	transition: all var(--transition-fast);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.task-complete-btn:hover {
-	border-color: var(--color-success);
-	background: rgba(70, 186, 97, 0.15);
-}
-
-.task-complete-btn:hover .check-circle::after {
-	content: '\2713';
-	color: var(--color-success);
-	font-size: 13px;
-	font-weight: bold;
-}
-
-.task-done-icon {
-	font-size: 16px;
-	flex-shrink: 0;
-}
-
-.task-info {
-	flex: 1;
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	min-width: 0;
+	accent-color: var(--color-success);
+	margin: 0;
 }
 
 .task-title {
-	font-size: var(--font-size-normal);
+	flex: 1;
+	font-size: var(--font-size-small);
+	font-weight: 500;
 	color: var(--color-main-text);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	min-width: 0;
+}
+
+.task-meta {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+.task-due {
+	font-size: 10px;
+	color: var(--color-text-lighter);
 }
 
 .task-priority {
-	font-size: 10px;
-	padding: 2px 8px;
-	border-radius: 10px;
+	font-size: 9px;
+	padding: 1px 6px;
+	border-radius: 8px;
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.3px;
-	flex-shrink: 0;
 }
 
-.priority-high { background: rgba(233, 50, 45, 0.12); color: var(--color-error); }
-.priority-medium { background: rgba(246, 165, 2, 0.12); color: var(--color-warning-contrast, #cc5500); }
-.priority-low { background: rgba(0, 130, 201, 0.12); color: var(--color-primary); }
+.priority-high {
+	background: rgba(233, 50, 45, 0.12);
+	color: var(--color-error);
+}
+
+.priority-medium {
+	background: rgba(246, 165, 2, 0.12);
+	color: var(--color-warning-contrast, #cc5500);
+}
+
+.priority-low {
+	background: rgba(0, 130, 201, 0.08);
+	color: var(--color-primary);
+}
 
 .task-xp {
-	font-size: var(--font-size-small);
+	font-size: 11px;
 	font-weight: 700;
-	color: var(--color-primary);
+	color: var(--color-success);
 	flex-shrink: 0;
+	white-space: nowrap;
 }
 
 .no-tasks {
 	text-align: center;
-	padding: 24px;
+	padding: 20px;
 	color: var(--color-text-lighter);
 	font-size: var(--font-size-small);
 	font-style: italic;
