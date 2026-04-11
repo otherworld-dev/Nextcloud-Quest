@@ -117,9 +117,9 @@ class TaskListController extends Controller {
                 ->from('calendars')
                 ->setMaxResults(1);
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $result->closeCursor();
-            
+
             return true;
         } catch (\Exception $e) {
             return false;
@@ -142,7 +142,7 @@ class TaskListController extends Controller {
                 ->andWhere($qb->expr()->like('components', $qb->createNamedParameter('%VTODO%', \PDO::PARAM_STR)))
                 ->orderBy('displayname', 'ASC');
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $calendars = $result->fetchAll();
             $result->closeCursor();
             
@@ -194,7 +194,7 @@ class TaskListController extends Controller {
                 ->orderBy('lastmodified', 'DESC')
                 ->setMaxResults(100); // Limit to 100 tasks per calendar to prevent slowdown
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $calendarObjects = $result->fetchAll();
             $result->closeCursor();
             

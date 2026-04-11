@@ -53,7 +53,7 @@ class CharacterProgressionMapper extends QBMapper {
             ->andWhere($qb->expr()->eq('age_key', $qb->createNamedParameter($ageKey, IQueryBuilder::PARAM_STR)))
             ->setMaxResults(1);
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $row = $result->fetch();
         $result->closeCursor();
 
@@ -94,7 +94,7 @@ class CharacterProgressionMapper extends QBMapper {
             ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)))
             ->orderBy('reached_at', 'ASC');
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $ageKeys = [];
         while ($row = $result->fetch()) {
             $ageKeys[] = $row['age_key'];
@@ -137,7 +137,7 @@ class CharacterProgressionMapper extends QBMapper {
             ->from($this->getTableName())
             ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)));
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $totalAges = (int)$result->fetchOne();
         $result->closeCursor();
 
@@ -147,7 +147,7 @@ class CharacterProgressionMapper extends QBMapper {
             ->from($this->getTableName())
             ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)));
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $dates = $result->fetch();
         $result->closeCursor();
 
@@ -158,7 +158,7 @@ class CharacterProgressionMapper extends QBMapper {
             ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)))
             ->orderBy('reached_at', 'ASC');
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $progressionData = $result->fetchAll();
         $result->closeCursor();
 
@@ -210,7 +210,7 @@ class CharacterProgressionMapper extends QBMapper {
             ->groupBy('age_key')
             ->orderBy('age_key', 'ASC');
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $ageStats = $result->fetchAll();
         $result->closeCursor();
 
@@ -224,7 +224,7 @@ class CharacterProgressionMapper extends QBMapper {
             ->groupBy('age_key')
             ->orderBy('age_key', 'ASC');
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $levelStats = $result->fetchAll();
         $result->closeCursor();
 
@@ -235,7 +235,7 @@ class CharacterProgressionMapper extends QBMapper {
             ->orderBy('reached_at', 'DESC')
             ->setMaxResults(10);
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $recentProgressions = $result->fetchAll();
         $result->closeCursor();
 

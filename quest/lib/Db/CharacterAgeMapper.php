@@ -114,7 +114,7 @@ class CharacterAgeMapper extends QBMapper {
             ->where($qb->expr()->eq('is_active', $qb->createNamedParameter(true, IQueryBuilder::PARAM_BOOL)))
             ->orderBy('min_level', 'ASC');
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $ages = $result->fetchAll();
         $result->closeCursor();
 

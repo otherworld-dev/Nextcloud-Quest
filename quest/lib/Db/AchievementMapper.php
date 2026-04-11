@@ -123,9 +123,9 @@ class AchievementMapper extends QBMapper {
             ->set('notified', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT))
             ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
         
-        $qb->execute();
+        $qb->executeStatement();
     }
-    
+
     /**
      * Get achievement statistics
      * 
@@ -139,7 +139,7 @@ class AchievementMapper extends QBMapper {
             ->from($this->getTableName())
             ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)));
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $stats = $result->fetch();
         $result->closeCursor();
         

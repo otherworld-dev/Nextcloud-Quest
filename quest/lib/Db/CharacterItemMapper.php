@@ -188,7 +188,7 @@ class CharacterItemMapper extends QBMapper {
             ->groupBy('age_key')
             ->orderBy('age_key', 'ASC');
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $ageStats = $result->fetchAll();
         $result->closeCursor();
 
@@ -201,7 +201,7 @@ class CharacterItemMapper extends QBMapper {
             ->groupBy('item_type')
             ->orderBy('item_type', 'ASC');
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $typeStats = $result->fetchAll();
         $result->closeCursor();
 
@@ -214,7 +214,7 @@ class CharacterItemMapper extends QBMapper {
             ->groupBy('item_rarity')
             ->orderBy('item_rarity', 'ASC');
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $rarityStats = $result->fetchAll();
         $result->closeCursor();
 

@@ -53,7 +53,7 @@ class SeedItemsCommand extends Command {
                 ->from('quest_char_items')
                 ->where($qb->expr()->eq('item_key', $qb->createNamedParameter($item['item_key'])));
 
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $exists = $result->fetch();
             $result->closeCursor();
 
@@ -81,7 +81,7 @@ class SeedItemsCommand extends Command {
                         'created_at' => $qb->createNamedParameter($now, 'datetime'),
                     ]);
 
-                $qb->execute();
+                $qb->executeStatement();
                 $insertCount++;
                 $output->writeln("  Created: {$item['item_name']} ({$item['item_type']})");
             }

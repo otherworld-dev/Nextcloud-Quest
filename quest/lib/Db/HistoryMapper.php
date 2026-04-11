@@ -88,10 +88,10 @@ class HistoryMapper extends QBMapper {
             $qb->andWhere($qb->expr()->gte('completed_at', $qb->createNamedParameter($startDate->format('Y-m-d H:i:s'), IQueryBuilder::PARAM_STR)));
         }
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $stats = $result->fetchAll();
         $result->closeCursor();
-        
+
         // Calculate aggregates
         $totalTasks = 0;
         $totalXp = 0;
@@ -136,10 +136,10 @@ class HistoryMapper extends QBMapper {
             ->andWhere($qb->expr()->gte('completed_at', $qb->createNamedParameter($startOfDay->format('Y-m-d H:i:s'), IQueryBuilder::PARAM_STR)))
             ->andWhere($qb->expr()->lte('completed_at', $qb->createNamedParameter($endOfDay->format('Y-m-d H:i:s'), IQueryBuilder::PARAM_STR)));
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $count = $result->fetchOne();
         $result->closeCursor();
-        
+
         return (int)$count > 0;
     }
     
@@ -158,9 +158,9 @@ class HistoryMapper extends QBMapper {
         $qb->delete($this->getTableName())
             ->where($qb->expr()->lt('completed_at', $qb->createNamedParameter($cutoffDate->format('Y-m-d H:i:s'), IQueryBuilder::PARAM_STR)));
         
-        return $qb->execute();
+        return $qb->executeStatement();
     }
-    
+
     // Analytics Methods for Progress Tracking
     
     /**
@@ -173,13 +173,13 @@ class HistoryMapper extends QBMapper {
             ->from($this->getTableName())
             ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)));
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $count = $result->fetchOne();
         $result->closeCursor();
-        
+
         return (int)$count;
     }
-    
+
     /**
      * Count completions in a specific period
      */
@@ -215,13 +215,13 @@ class HistoryMapper extends QBMapper {
             $qb->andWhere($qb->expr()->lte('completed_at', $qb->createNamedParameter($endDate->format('Y-m-d H:i:s'), IQueryBuilder::PARAM_STR)));
         }
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $count = $result->fetchOne();
         $result->closeCursor();
-        
+
         return (int)$count;
     }
-    
+
     /**
      * Get XP trends for different periods
      */
@@ -246,10 +246,10 @@ class HistoryMapper extends QBMapper {
         ->orderBy('period', 'DESC')
         ->setMaxResults($limit);
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $trends = $result->fetchAll();
         $result->closeCursor();
-        
+
         return array_reverse($trends); // Return chronological order
     }
     
@@ -277,7 +277,7 @@ class HistoryMapper extends QBMapper {
         ->from($this->getTableName())
         ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)));
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $total = $result->fetch();
         $result->closeCursor();
         
@@ -309,7 +309,7 @@ class HistoryMapper extends QBMapper {
         ->groupBy('date')
         ->orderBy('date', 'ASC');
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $calendar = $result->fetchAll();
         $result->closeCursor();
         
@@ -335,7 +335,7 @@ class HistoryMapper extends QBMapper {
         ->andWhere($qb->expr()->gte('completed_at', $qb->createNamedParameter($startOfMonth->format('Y-m-d H:i:s'), IQueryBuilder::PARAM_STR)))
         ->andWhere($qb->expr()->lte('completed_at', $qb->createNamedParameter($endOfMonth->format('Y-m-d H:i:s'), IQueryBuilder::PARAM_STR)));
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $activeDays = (int)$result->fetchOne();
         $result->closeCursor();
         
@@ -377,10 +377,10 @@ class HistoryMapper extends QBMapper {
         ->orderBy('date', 'ASC')
         ->addOrderBy('hour', 'ASC');
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $heatmap = $result->fetchAll();
         $result->closeCursor();
-        
+
         return $heatmap;
     }
     
@@ -407,13 +407,13 @@ class HistoryMapper extends QBMapper {
         ->orderBy('period', 'DESC')
         ->setMaxResults($limit);
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $trends = $result->fetchAll();
         $result->closeCursor();
-        
+
         return array_reverse($trends);
     }
-    
+
     /**
      * Get priority distribution
      */
@@ -444,7 +444,7 @@ class HistoryMapper extends QBMapper {
         ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)))
         ->groupBy('hour', 'day_of_week');
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $analytics = $result->fetchAll();
         $result->closeCursor();
         
@@ -497,7 +497,7 @@ class HistoryMapper extends QBMapper {
         ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)))
         ->groupBy('day_name');
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $productivity = [];
         while ($row = $result->fetch()) {
             $productivity[$row['day_name']] = (int)$row['task_count'];
@@ -521,7 +521,7 @@ class HistoryMapper extends QBMapper {
         ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)))
         ->groupBy('hour');
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $productivity = [];
         while ($row = $result->fetch()) {
             $productivity[(int)$row['hour']] = (int)$row['task_count'];
@@ -543,7 +543,7 @@ class HistoryMapper extends QBMapper {
         ->from($this->getTableName())
         ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)));
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $firstCompletion = $result->fetchOne();
         $result->closeCursor();
         
@@ -569,13 +569,13 @@ class HistoryMapper extends QBMapper {
         ->from($this->getTableName())
         ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)));
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $count = $result->fetchOne();
         $result->closeCursor();
-        
+
         return (int)$count;
     }
-    
+
     /**
      * Get weekend activity percentage
      */
@@ -597,7 +597,7 @@ class HistoryMapper extends QBMapper {
         ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)))
         ->andWhere($qb->expr()->in('DAYOFWEEK(completed_at)', [1, 7]));
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $weekendTasks = (int)$result->fetchOne();
         $result->closeCursor();
         
@@ -625,7 +625,7 @@ class HistoryMapper extends QBMapper {
         ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)))
         ->andWhere($qb->expr()->gte('HOUR(completed_at)', 18));
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $eveningTasks = (int)$result->fetchOne();
         $result->closeCursor();
         

@@ -195,7 +195,7 @@ class Version1015Date20250930140000 extends SimpleMigrationStep {
                 ->from('quest_char_items')
                 ->where($qb->expr()->eq('item_key', $qb->createNamedParameter($item['item_key'])));
 
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $exists = $result->fetch();
             $result->closeCursor();
 
@@ -223,7 +223,7 @@ class Version1015Date20250930140000 extends SimpleMigrationStep {
                         'created_at' => $qb->createNamedParameter($now, 'datetime'),
                     ]);
 
-                $qb->execute();
+                $qb->executeStatement();
                 $insertCount++;
             }
         }

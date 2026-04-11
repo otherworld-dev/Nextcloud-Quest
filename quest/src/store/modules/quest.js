@@ -176,7 +176,15 @@ const actions = {
 		try {
 			const response = await api.getStats()
 			if (response.status === 'success') {
-				commit('setStats', response.data || response)
+				const data = response.data || response
+				// Map API response shape to store state shape
+				const mapped = { ...data }
+				if (data.tasks) {
+					mapped.tasks_today = data.tasks.completed_today || 0
+					mapped.tasks_this_week = data.tasks.completed_this_week || 0
+					mapped.total_tasks = data.tasks.total_completed || 0
+				}
+				commit('setStats', mapped)
 			}
 		} catch (error) {
 			console.error('Failed to load stats:', error)

@@ -213,7 +213,7 @@ class Version1014Date20250930130000 extends SimpleMigrationStep {
             $qb = $connection->getQueryBuilder();
             $qb->delete('ncquest_character_ages')
                 ->where($qb->expr()->eq('age_key', $qb->createNamedParameter($oldKey)));
-            $qb->execute();
+            $qb->executeStatement();
         }
 
         foreach ($ages as $age) {
@@ -223,7 +223,7 @@ class Version1014Date20250930130000 extends SimpleMigrationStep {
                 ->from('ncquest_character_ages')
                 ->where($qb->expr()->eq('age_key', $qb->createNamedParameter($age['age_key'])));
 
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $exists = $result->fetch();
             $result->closeCursor();
 
@@ -260,7 +260,7 @@ class Version1014Date20250930130000 extends SimpleMigrationStep {
                 $qb->insert('ncquest_character_ages')
                     ->values($values);
 
-                $qb->execute();
+                $qb->executeStatement();
 
                 $output->info("Created character age: {$age['age_name']}");
             }

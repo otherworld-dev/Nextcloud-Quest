@@ -136,9 +136,9 @@ class QuestControllerSimple extends Controller {
                 ->from('tasks_tasks')
                 ->setMaxResults(1);
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $result->closeCursor();
-            
+
             return true;
         } catch (\Exception $e) {
             return false;
@@ -156,7 +156,7 @@ class QuestControllerSimple extends Controller {
                 ->where($qb->expr()->eq('uid', $qb->createNamedParameter($userId, \PDO::PARAM_STR)))
                 ->orderBy('displayname', 'ASC');
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $lists = $result->fetchAll();
             $result->closeCursor();
             
@@ -198,7 +198,7 @@ class QuestControllerSimple extends Controller {
                 ->addOrderBy('priority', 'ASC')
                 ->addOrderBy('summary', 'ASC');
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $tasks = $result->fetchAll();
             $result->closeCursor();
             

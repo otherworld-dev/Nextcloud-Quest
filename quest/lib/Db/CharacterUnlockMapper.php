@@ -53,7 +53,7 @@ class CharacterUnlockMapper extends QBMapper {
             ->andWhere($qb->expr()->eq('item_key', $qb->createNamedParameter($itemKey, IQueryBuilder::PARAM_STR)))
             ->setMaxResults(1);
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $row = $result->fetch();
         $result->closeCursor();
 
@@ -93,7 +93,7 @@ class CharacterUnlockMapper extends QBMapper {
             ->from($this->getTableName())
             ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)));
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $itemKeys = [];
         while ($row = $result->fetch()) {
             $itemKeys[] = $row['item_key'];
@@ -136,7 +136,7 @@ class CharacterUnlockMapper extends QBMapper {
             ->from($this->getTableName())
             ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)));
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $totalUnlocks = (int)$result->fetchOne();
         $result->closeCursor();
 
@@ -148,7 +148,7 @@ class CharacterUnlockMapper extends QBMapper {
             ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, IQueryBuilder::PARAM_STR)))
             ->groupBy('unlock_method');
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $methodStats = $result->fetchAll();
         $result->closeCursor();
 
@@ -160,7 +160,7 @@ class CharacterUnlockMapper extends QBMapper {
             ->orderBy('unlocked_at', 'DESC')
             ->setMaxResults(5);
 
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $recentDates = [];
         while ($row = $result->fetch()) {
             $recentDates[] = $row['unlocked_at'];

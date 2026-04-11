@@ -154,10 +154,10 @@ class QuestMapper extends QBMapper {
             ->from($this->getTableName())
             ->where($qb->expr()->gt($orderBy, $qb->createNamedParameter($userValue, IQueryBuilder::PARAM_INT)));
         
-        $result = $qb->execute();
+        $result = $qb->executeQuery();
         $count = $result->fetchOne();
         $result->closeCursor();
-        
+
         return (int)$count + 1;
     }
 }

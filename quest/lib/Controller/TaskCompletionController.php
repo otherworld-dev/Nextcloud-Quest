@@ -255,14 +255,14 @@ class TaskCompletionController extends Controller {
                 ->andWhere($qb->expr()->eq('calendarid', $qb->createNamedParameter($listId, \PDO::PARAM_INT)))
                 ->andWhere($qb->expr()->like('calendardata', $qb->createNamedParameter('%VTODO%', \PDO::PARAM_STR)));
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $object = $result->fetch();
             $result->closeCursor();
-            
+
             if (!$object) {
                 return null;
             }
-            
+
             $taskData = $this->parseVTodoData($object['calendardata']);
             if (!$taskData) {
                 return null;
@@ -294,14 +294,14 @@ class TaskCompletionController extends Controller {
                 ->where($qb->expr()->eq('id', $qb->createNamedParameter($taskId, \PDO::PARAM_INT)))
                 ->andWhere($qb->expr()->eq('calendarid', $qb->createNamedParameter($listId, \PDO::PARAM_INT)));
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $object = $result->fetch();
             $result->closeCursor();
-            
+
             if (!$object) {
                 return false;
             }
-            
+
             // Update CalDAV data to mark as complete
             $calendarData = $object['calendardata'];
             
@@ -331,8 +331,8 @@ class TaskCompletionController extends Controller {
                 ->set('lastmodified', $updateQb->createNamedParameter(time(), \PDO::PARAM_INT))
                 ->where($updateQb->expr()->eq('id', $updateQb->createNamedParameter($taskId, \PDO::PARAM_INT)));
             
-            $updateQb->execute();
-            
+            $updateQb->executeStatement();
+
             return true;
             
         } catch (\Exception $e) {
@@ -372,7 +372,7 @@ class TaskCompletionController extends Controller {
                 ->from('quest_user_data')
                 ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, \PDO::PARAM_STR)));
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $existingData = $result->fetch();
             $result->closeCursor();
             
@@ -385,24 +385,24 @@ class TaskCompletionController extends Controller {
                     ->set('level', $qb->createNamedParameter($level, \PDO::PARAM_INT))
                     ->set('updated_at', $qb->createNamedParameter(date('Y-m-d H:i:s'), \PDO::PARAM_STR))
                     ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, \PDO::PARAM_STR)))
-                    ->execute();
-                    
+                    ->executeStatement();
+
                 // Ensure the transaction is committed (if supported)
                 try {
                     $this->db->commit();
                 } catch (\Exception $commitE) {
                     // Commit not supported or failed
                 }
-                
+
                 // Verify the update by reading it back
                 $verifyQb = $this->db->getQueryBuilder();
                 $verifyQb->select('total_xp', 'level')
                     ->from('quest_user_data')
                     ->where($verifyQb->expr()->eq('user_id', $verifyQb->createNamedParameter($userId, \PDO::PARAM_STR)));
-                $verifyResult = $verifyQb->execute();
+                $verifyResult = $verifyQb->executeQuery();
                 $verifyData = $verifyResult->fetch();
                 $verifyResult->closeCursor();
-                
+
                 if ($verifyData) {
                 } else {
                 }
@@ -418,8 +418,8 @@ class TaskCompletionController extends Controller {
                         'created_at' => $qb->createNamedParameter(date('Y-m-d H:i:s'), \PDO::PARAM_STR),
                         'updated_at' => $qb->createNamedParameter(date('Y-m-d H:i:s'), \PDO::PARAM_STR)
                     ]);
-                $insertResult = $qb->execute();
-                
+                $insertResult = $qb->executeStatement();
+
                 // Ensure the transaction is committed (if supported)
                 try {
                     $this->db->commit();
@@ -432,10 +432,10 @@ class TaskCompletionController extends Controller {
                 $verifyQb->select('total_xp', 'level')
                     ->from('quest_user_data')
                     ->where($verifyQb->expr()->eq('user_id', $verifyQb->createNamedParameter($userId, \PDO::PARAM_STR)));
-                $verifyResult = $verifyQb->execute();
+                $verifyResult = $verifyQb->executeQuery();
                 $verifyData = $verifyResult->fetch();
                 $verifyResult->closeCursor();
-                
+
                 if ($verifyData) {
                 } else {
                 }
@@ -537,7 +537,7 @@ class TaskCompletionController extends Controller {
                     'xp_gained' => $qb->createNamedParameter($xpGained, \PDO::PARAM_INT),
                     'completed_at' => $qb->createNamedParameter(date('Y-m-d H:i:s'), \PDO::PARAM_STR)
                 ]);
-            $insertResult = $qb->execute();
+            $insertResult = $qb->executeStatement();
             $historyRetryCount = 0; // Reset on success
             
             
@@ -714,10 +714,10 @@ class TaskCompletionController extends Controller {
                 ->from('quest_user_data')
                 ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, \PDO::PARAM_STR)));
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $userData = $result->fetch();
             $result->closeCursor();
-            
+
             if ($userData) {
                 $xp = (int)$userData['total_xp'];
                 $level = (int)$userData['level'];
@@ -760,11 +760,11 @@ class TaskCompletionController extends Controller {
                 ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, \PDO::PARAM_STR)))
                 ->orderBy('completed_at', 'DESC');
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $completionDates = $result->fetchAll();
             $result->closeCursor();
-            
-            
+
+
             if (empty($completionDates)) {
                 return ['current_streak' => 0, 'longest_streak' => 0];
             }
@@ -854,10 +854,10 @@ class TaskCompletionController extends Controller {
                 ->andWhere($todayQb->expr()->gte('completed_at', $todayQb->createNamedParameter($todayStart, \PDO::PARAM_STR)))
                 ->andWhere($todayQb->expr()->lte('completed_at', $todayQb->createNamedParameter($todayEnd, \PDO::PARAM_STR)));
             
-            $todayResult = $todayQb->execute();
+            $todayResult = $todayQb->executeQuery();
             $tasksToday = (int)$todayResult->fetch()['task_count'];
             $todayResult->closeCursor();
-            
+
             // Tasks completed this week (compare date part of timestamp)
             $weekStartDateTime = $weekStart . ' 00:00:00';
             
@@ -867,11 +867,11 @@ class TaskCompletionController extends Controller {
                 ->where($weekQb->expr()->eq('user_id', $weekQb->createNamedParameter($userId, \PDO::PARAM_STR)))
                 ->andWhere($weekQb->expr()->gte('completed_at', $weekQb->createNamedParameter($weekStartDateTime, \PDO::PARAM_STR)));
             
-            $weekResult = $weekQb->execute();
+            $weekResult = $weekQb->executeQuery();
             $tasksThisWeek = (int)$weekResult->fetch()['task_count'];
             $weekResult->closeCursor();
-            
-            
+
+
             return [
                 'tasks_today' => $tasksToday,
                 'tasks_this_week' => $tasksThisWeek

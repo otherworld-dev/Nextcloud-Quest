@@ -66,9 +66,9 @@ class TasksApiIntegration {
                 ->from('calendars')
                 ->setMaxResults(1);
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $result->closeCursor();
-            
+
             return true;
         } catch (\Exception $e) {
             $this->logger->debug('Tasks app not available', ['error' => $e->getMessage()]);
@@ -96,14 +96,14 @@ class TasksApiIntegration {
                 ->where($qb->expr()->eq('id', $qb->createNamedParameter($taskId, \PDO::PARAM_INT)))
                 ->andWhere($qb->expr()->like('calendardata', $qb->createNamedParameter('%VTODO%', \PDO::PARAM_STR)));
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $object = $result->fetch();
             $result->closeCursor();
-            
+
             if (!$object) {
                 return null;
             }
-            
+
             // Parse CalDAV data and return in expected format
             $taskData = $this->parseVTodoData($object['calendardata']);
             if (!$taskData) {
@@ -157,10 +157,10 @@ class TasksApiIntegration {
                 ->andWhere($qb->expr()->lte('completed_at', $qb->createNamedParameter($endOfDay->format('Y-m-d H:i:s'), \PDO::PARAM_STR)))
                 ->orderBy('completed_at', 'DESC');
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $tasks = $result->fetchAll();
             $result->closeCursor();
-            
+
             return $tasks;
         } catch (\Exception $e) {
             $this->logger->error('Failed to fetch today\'s completed tasks', [
@@ -200,10 +200,10 @@ class TasksApiIntegration {
                 ->orderBy('due', 'ASC')
                 ->addOrderBy('priority', 'DESC');
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $tasks = $result->fetchAll();
             $result->closeCursor();
-            
+
             return $tasks;
         } catch (\Exception $e) {
             $this->logger->error('Failed to fetch today\'s pending tasks', [
@@ -347,10 +347,10 @@ class TasksApiIntegration {
                 ->andWhere($qb->expr()->like('components', $qb->createNamedParameter('%VTODO%', \PDO::PARAM_STR)))
                 ->orderBy('displayname', 'ASC');
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $lists = $result->fetchAll();
             $result->closeCursor();
-            
+
             // Add task counts for each list
             $enhancedLists = [];
             foreach ($lists as $list) {
@@ -403,7 +403,7 @@ class TasksApiIntegration {
                 ->orderBy('lastmodified', 'DESC')
                 ->setMaxResults(100);
 
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $tasks = $result->fetchAll();
             $result->closeCursor();
 
@@ -507,7 +507,7 @@ class TasksApiIntegration {
                 ->where($qb->expr()->eq('id', $qb->createNamedParameter($taskId, \PDO::PARAM_INT)))
                 ->andWhere($qb->expr()->eq('componenttype', $qb->createNamedParameter('VTODO', \PDO::PARAM_STR)));
 
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $task = $result->fetch();
             $result->closeCursor();
 
@@ -547,7 +547,7 @@ class TasksApiIntegration {
                 ->set('etag', $qb->createNamedParameter(md5($updatedData), \PDO::PARAM_STR))
                 ->where($qb->expr()->eq('id', $qb->createNamedParameter($taskId, \PDO::PARAM_INT)));
 
-            $affected = $qb->execute();
+            $affected = $qb->executeStatement();
 
             $this->logger->info('Task marked as completed', [
                 'taskId' => $taskId,
@@ -606,7 +606,7 @@ class TasksApiIntegration {
                 $qb->andWhere($dateFilter);
             }
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $completedCount = (int)$result->fetchOne();
             $result->closeCursor();
             
@@ -620,7 +620,7 @@ class TasksApiIntegration {
                 $qb->andWhere($dateFilter);
             }
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $totalCount = (int)$result->fetchOne();
             $result->closeCursor();
             

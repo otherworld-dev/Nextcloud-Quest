@@ -390,10 +390,10 @@ class QuestStatsController extends Controller {
                 ->from('quest_user_data')
                 ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, \PDO::PARAM_STR)));
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $userData = $result->fetch();
             $result->closeCursor();
-            
+
             if ($userData) {
                 $xp = (int)$userData['total_xp'];
                 $level = (int)$userData['level'];
@@ -436,11 +436,11 @@ class QuestStatsController extends Controller {
                 ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId, \PDO::PARAM_STR)))
                 ->orderBy('completed_at', 'DESC');
             
-            $result = $qb->execute();
+            $result = $qb->executeQuery();
             $completionDates = $result->fetchAll();
             $result->closeCursor();
-            
-            
+
+
             if (empty($completionDates)) {
                 return ['current_streak' => 0, 'longest_streak' => 0];
             }
@@ -530,7 +530,7 @@ class QuestStatsController extends Controller {
                 ->andWhere($todayQb->expr()->gte('completed_at', $todayQb->createNamedParameter($todayStart, \PDO::PARAM_STR)))
                 ->andWhere($todayQb->expr()->lte('completed_at', $todayQb->createNamedParameter($todayEnd, \PDO::PARAM_STR)));
             
-            $todayResult = $todayQb->execute();
+            $todayResult = $todayQb->executeQuery();
             $tasksToday = (int)$todayResult->fetch()['task_count'];
             $todayResult->closeCursor();
             
@@ -543,7 +543,7 @@ class QuestStatsController extends Controller {
                 ->where($weekQb->expr()->eq('user_id', $weekQb->createNamedParameter($userId, \PDO::PARAM_STR)))
                 ->andWhere($weekQb->expr()->gte('completed_at', $weekQb->createNamedParameter($weekStartDateTime, \PDO::PARAM_STR)));
             
-            $weekResult = $weekQb->execute();
+            $weekResult = $weekQb->executeQuery();
             $tasksThisWeek = (int)$weekResult->fetch()['task_count'];
             $weekResult->closeCursor();
             
