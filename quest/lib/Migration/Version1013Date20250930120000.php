@@ -91,7 +91,7 @@ class Version1013Date20250930120000 extends SimpleMigrationStep {
 
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options) {
         // Initialize default values for existing users
-        $connection = \OC::$server->getDatabaseConnection();
+        $connection = \OC::$server->get(OCPIDBConnection::class);
 
         // Set default age to 'stone' for existing users without one
         try {

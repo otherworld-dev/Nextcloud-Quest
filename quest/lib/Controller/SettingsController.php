@@ -636,7 +636,7 @@ class SettingsController extends Controller {
             }
             
             // Store backup in database
-            $connection = \OC::$server->getDatabaseConnection();
+            $connection = \OC::$server->get(OCPIDBConnection::class);
             $backupData = json_encode($exportData['data']);
             
             if (empty($backupName)) {
@@ -678,7 +678,7 @@ class SettingsController extends Controller {
         $userId = $this->userSession->getUser()->getUID();
         
         try {
-            $connection = \OC::$server->getDatabaseConnection();
+            $connection = \OC::$server->get(OCPIDBConnection::class);
             $result = $connection->executeQuery(
                 'SELECT `id`, `backup_name`, `backup_type`, `data_size`, `created_at`, `expires_at` FROM `*PREFIX*ncquest_backups` WHERE `user_id` = ? ORDER BY `created_at` DESC',
                 [$userId]
@@ -720,7 +720,7 @@ class SettingsController extends Controller {
         $userId = $this->userSession->getUser()->getUID();
         
         try {
-            $connection = \OC::$server->getDatabaseConnection();
+            $connection = \OC::$server->get(OCPIDBConnection::class);
             $result = $connection->executeQuery(
                 'SELECT `backup_data` FROM `*PREFIX*ncquest_backups` WHERE `id` = ? AND `user_id` = ?',
                 [$backupId, $userId]
@@ -760,7 +760,7 @@ class SettingsController extends Controller {
             $userId = $this->userSession->getUser()->getUID();
             $request = \OC::$server->getRequest();
             
-            $connection = \OC::$server->getDatabaseConnection();
+            $connection = \OC::$server->get(OCPIDBConnection::class);
             $connection->executeStatement(
                 'INSERT INTO `*PREFIX*ncquest_audit` (`user_id`, `action`, `setting_category`, `setting_key`, `old_value`, `new_value`, `ip_address`, `user_agent`, `created_at`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [
@@ -792,7 +792,7 @@ class SettingsController extends Controller {
         $userId = $this->userSession->getUser()->getUID();
         
         try {
-            $connection = \OC::$server->getDatabaseConnection();
+            $connection = \OC::$server->get(OCPIDBConnection::class);
             $result = $connection->executeQuery(
                 'SELECT `action`, `setting_category`, `setting_key`, `old_value`, `new_value`, `created_at` FROM `*PREFIX*ncquest_audit` WHERE `user_id` = ? ORDER BY `created_at` DESC LIMIT ? OFFSET ?',
                 [$userId, $limit, $offset]

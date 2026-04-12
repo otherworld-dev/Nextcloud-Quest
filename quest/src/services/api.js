@@ -29,10 +29,11 @@ class QuestAPI {
 		return data
 	}
 
-	async completeTask(taskId, taskTitle, priority = 'medium') {
+	async completeTask(taskId, listId, taskTitle, priority = 'medium') {
 		const { data } = await axios.post(`${this.baseURL}/complete-quest`, {
-			taskId,
-			taskTitle,
+			task_id: taskId,
+			list_id: listId,
+			task_title: taskTitle,
 			priority,
 		})
 		return data

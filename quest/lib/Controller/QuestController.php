@@ -724,7 +724,7 @@ class QuestController extends Controller {
      */
     private function getSimpleUserData(string $userId): array {
         try {
-            $db = \OC::$server->getDatabaseConnection();
+            $db = \OC::$server->get(\OCP\IDBConnection::class);
             $qb = $db->getQueryBuilder();
             $qb->select('*')
                 ->from('ncquest_users')
@@ -752,7 +752,7 @@ class QuestController extends Controller {
      */
     private function updateSimpleUserXP(string $userId, int $xp, int $level, int $xpEarned = 0, int $currentHealth = null, int $maxHealth = null): array {
         try {
-            $db = \OC::$server->getDatabaseConnection();
+            $db = \OC::$server->get(\OCP\IDBConnection::class);
             $qb = $db->getQueryBuilder();
 
             // Check if user exists and get current values including health
@@ -893,7 +893,7 @@ class QuestController extends Controller {
      */
     private function getTaskCountsFromUnifiedTable(string $userId): array {
         try {
-            $db = \OC::$server->getDatabaseConnection();
+            $db = \OC::$server->get(\OCP\IDBConnection::class);
             $qb = $db->getQueryBuilder();
 
             $qb->select('tasks_completed_today', 'tasks_completed_this_week', 'total_tasks_completed')
@@ -933,7 +933,7 @@ class QuestController extends Controller {
      */
     private function updateStreakInUnifiedTable(string $userId): array {
         try {
-            $db = \OC::$server->getDatabaseConnection();
+            $db = \OC::$server->get(\OCP\IDBConnection::class);
             $qb = $db->getQueryBuilder();
 
             // Get current user data
@@ -1074,7 +1074,7 @@ class QuestController extends Controller {
     private function recordXPHistory(string $userId, string $taskId, int $xpEarned): void {
         error_log("Quest: recordXPHistory called - User: $userId, Task: $taskId, XP: $xpEarned");
         try {
-            $db = \OC::$server->getDatabaseConnection();
+            $db = \OC::$server->get(\OCP\IDBConnection::class);
             $qb = $db->getQueryBuilder();
             
             $qb->insert('ncquest_history')

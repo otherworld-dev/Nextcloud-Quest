@@ -235,10 +235,10 @@ const actions = {
 		}
 	},
 
-	async completeTask({ commit, dispatch }, { taskId, taskTitle, priority = 'medium' }) {
+	async completeTask({ commit, dispatch }, { taskId, listId, taskTitle, priority = 'medium' }) {
 		commit('setLoading', { type: 'completingTask', loading: true })
 		try {
-			const response = await api.completeTask(taskId, taskTitle, priority)
+			const response = await api.completeTask(taskId, listId, taskTitle, priority)
 			if (response.status === 'success') {
 				const result = response.data || response
 
@@ -314,8 +314,14 @@ const actions = {
 					message: taskTitle,
 				})
 
-				// Refresh full stats in background
-				dispatch('loadStats')
+				// Update task counts from response
+				if (result.stats) {
+					commit('setStats', {
+						tasks_today: result.stats.tasks_today || 0,
+						tasks_this_week: result.stats.tasks_this_week || 0,
+						total_tasks: result.stats.total_tasks || 0,
+					})
+				}
 
 				return result
 			}

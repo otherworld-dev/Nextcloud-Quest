@@ -107,7 +107,7 @@ class Version1014Date20250930130000 extends SimpleMigrationStep {
     }
 
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options) {
-        $connection = \OC::$server->getDatabaseConnection();
+        $connection = \OC::$server->get(OCPIDBConnection::class);
 
         // Get the actual schema to check which columns exist
         /** @var ISchemaWrapper $schema */

@@ -97,7 +97,7 @@ class Version1010Date20250818120000 extends SimpleMigrationStep {
      */
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
         // Get database connection to populate new columns
-        $connection = \OC::$server->getDatabaseConnection();
+        $connection = \OC::$server->get(OCPIDBConnection::class);
         
         // Update existing achievement records with default values
         try {

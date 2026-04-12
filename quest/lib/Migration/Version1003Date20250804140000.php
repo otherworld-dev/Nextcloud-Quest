@@ -59,7 +59,7 @@ class Version1003Date20250804140000 extends SimpleMigrationStep {
 
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options) {
         // Insert basic age data
-        $connection = \OC::$server->getDatabaseConnection();
+        $connection = \OC::$server->get(OCPIDBConnection::class);
         
         $ages = [
             ['age_key' => 'Stone', 'age_name' => 'Stone Age', 'min_level' => 1],

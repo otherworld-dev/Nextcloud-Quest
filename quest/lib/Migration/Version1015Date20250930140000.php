@@ -180,7 +180,7 @@ class Version1015Date20250930140000 extends SimpleMigrationStep {
     }
 
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options) {
-        $connection = \OC::$server->getDatabaseConnection();
+        $connection = \OC::$server->get(OCPIDBConnection::class);
         $now = new \DateTime();
 
         // Define character items for each age and equipment type

@@ -84,10 +84,9 @@
 							<input
 								type="checkbox"
 								class="task-checkbox"
-								:checked="task.completed"
-								:disabled="loading.completingTask || task.completed"
-								@change="handleComplete(task, list)"
-								:title="'Complete: ' + (task.title || task.summary)"
+								:checked="task.completed == 1"
+								:disabled="loading.completingTask || task.completed == 1"
+								@click.prevent="handleComplete(task, list)"
 							>
 
 							<span class="task-title">{{ task.title || task.summary || 'Untitled task' }}</span>
@@ -263,15 +262,18 @@ export default {
 		},
 
 		async handleComplete(task, list) {
+			// Update locally immediately — no flicker
+			this.$set(task, 'completed', 1)
 			try {
 				await this.completeTask({
 					taskId: task.id || task.uid,
+					listId: list.id,
 					taskTitle: task.title || task.summary,
 					priority: this.getTaskPriority(task),
 				})
-				// Refresh task lists
-				this.loadTasks()
 			} catch (error) {
+				// Revert on failure
+				this.$set(task, 'completed', 0)
 				console.error('Failed to complete task:', error)
 			}
 		},

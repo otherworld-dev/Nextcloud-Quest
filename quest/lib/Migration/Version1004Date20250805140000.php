@@ -174,7 +174,7 @@ class Version1004Date20250805140000 extends SimpleMigrationStep {
 
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options) {
         // Update existing users with default values for new fields
-        $connection = \OC::$server->getDatabaseConnection();
+        $connection = \OC::$server->get(OCPIDBConnection::class);
         
         // Set default privacy settings for existing users
         $defaultPrivacySettings = json_encode([
