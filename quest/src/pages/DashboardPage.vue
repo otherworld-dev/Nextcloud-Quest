@@ -149,7 +149,7 @@
 					</div>
 					<div v-else class="achievement-list">
 						<div v-for="a in recentAchievements" :key="a.key" class="achievement-item">
-							<span class="achievement-icon">{{ a.icon || '&#x1F3C6;' }}</span>
+							<span class="achievement-icon"><img :src="iconUrl(a.icon)" :alt="a.name" class="achievement-img"></span>
 							<div class="achievement-info">
 								<span class="achievement-name">{{ a.name }}</span>
 								<span class="achievement-date">{{ formatDate(a.unlocked_at) }}</span>
@@ -187,6 +187,7 @@
 
 <script>
 import { mapState, mapActions, mapGetters } from 'vuex'
+import { generateFilePath } from '@nextcloud/router'
 import StatCard from '../components/StatCard.vue'
 
 export default {
@@ -243,10 +244,14 @@ export default {
 
 		nextGoals() {
 			return this.achievements
-				.filter(a => !a.unlocked && (a.progress_percentage || a.progress || 0) > 0)
+				.filter(a => {
+					if (a.unlocked) return false
+					const pct = a.progress_percentage || a.progress || 0
+					return pct > 0 && pct < 100
+				})
 				.map(a => ({
 					...a,
-					progress: a.progress_percentage || a.progress || 0,
+					progress: Math.min(a.progress_percentage || a.progress || 0, 99),
 				}))
 				.sort((a, b) => b.progress - a.progress)
 				.slice(0, 4)
@@ -260,6 +265,10 @@ export default {
 
 	methods: {
 		...mapActions('quest', ['loadTaskLists', 'loadAchievements', 'completeTask']),
+
+		iconUrl(icon) {
+			return generateFilePath('quest', '', 'img/achievements/' + (icon || 'default.svg'))
+		},
 
 		loadTasks() {
 			this.loadTaskLists()
@@ -759,7 +768,6 @@ export default {
 }
 
 .achievement-icon {
-	font-size: 28px;
 	width: 40px;
 	height: 40px;
 	display: flex;
@@ -767,6 +775,13 @@ export default {
 	justify-content: center;
 	background: var(--color-background-hover);
 	border-radius: var(--radius-medium);
+	flex-shrink: 0;
+}
+
+.achievement-img {
+	width: 28px;
+	height: 28px;
+	object-fit: contain;
 }
 
 .achievement-info {
