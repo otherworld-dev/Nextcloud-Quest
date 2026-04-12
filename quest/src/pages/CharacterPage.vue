@@ -159,7 +159,9 @@
 				</div>
 
 				<div v-else class="empty-items">
-					<p>No items available yet. Level up to unlock equipment!</p>
+					<div class="empty-icon">&#x1F392;</div>
+					<p class="empty-title">No items available yet</p>
+					<p class="empty-desc">Level up and progress through the ages to unlock equipment. Each age brings new weapons, armor, and accessories!</p>
 				</div>
 			</div>
 		</template>
@@ -752,10 +754,15 @@ export default {
 
 .empty-items {
 	text-align: center;
-	padding: 32px;
-	color: var(--color-text-light);
+	padding: 40px 20px;
 	margin-top: 16px;
+	border: 1px dashed var(--color-border);
+	border-radius: var(--radius-large);
 }
+
+.empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+.empty-title { font-size: var(--font-size-large); font-weight: 600; color: var(--color-main-text); margin: 0 0 6px; }
+.empty-desc { font-size: var(--font-size-normal); color: var(--color-text-light); margin: 0; line-height: 1.4; }
 
 /* ── Loading ── */
 .loading-state {

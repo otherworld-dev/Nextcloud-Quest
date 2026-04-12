@@ -6,6 +6,9 @@
 			<p class="page-subtitle">Welcome back! Complete tasks to earn XP and level up.</p>
 		</div>
 
+		<!-- Onboarding -->
+		<WelcomeBanner />
+
 		<!-- Stat cards -->
 		<section class="stats-grid">
 			<StatCard :icon="icons.level" label="Level" :value="stats.level.level" :subtitle="stats.level.rank_title" />
@@ -56,8 +59,12 @@
 				<div class="empty-state-icon">&#x1F4CB;</div>
 				<div class="empty-state-title">No task lists found</div>
 				<div class="empty-state-text">
-					Connect to Nextcloud Tasks to see your lists here.
+					Quest pulls tasks from Nextcloud's CalDAV calendars with VTODO support.
+					Create a calendar with task support, or install the Tasks app to get started.
 				</div>
+				<button class="btn empty-action" @click="loadTasks">
+					&#x1F504; Try Again
+				</button>
 			</div>
 
 			<!-- Task lists grid -->
@@ -189,11 +196,12 @@
 import { mapState, mapActions, mapGetters } from 'vuex'
 import { generateFilePath } from '@nextcloud/router'
 import StatCard from '../components/StatCard.vue'
+import WelcomeBanner from '../components/WelcomeBanner.vue'
 
 export default {
 	name: 'DashboardPage',
 
-	components: { StatCard },
+	components: { StatCard, WelcomeBanner },
 
 	data() {
 		return {
@@ -882,6 +890,11 @@ export default {
 .empty-state-text {
 	font-size: var(--font-size-normal);
 	color: var(--color-text-light);
+	line-height: 1.5;
+}
+
+.empty-action {
+	margin-top: 16px;
 }
 
 /* ── Responsive ── */
