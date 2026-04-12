@@ -86,6 +86,15 @@ return [
         ['name' => 'adventureWorld#completeBoss', 'url' => '/api/adventure/complete-boss/{worldNumber}', 'verb' => 'POST'],
         ['name' => 'adventureWorld#getProgress', 'url' => '/api/adventure-old/progress', 'verb' => 'GET'],
 
+        // Epic endpoints
+        ['name' => 'epic#getEpics', 'url' => '/api/epics', 'verb' => 'GET'],
+        ['name' => 'epic#getEpic', 'url' => '/api/epics/{id}', 'verb' => 'GET'],
+        ['name' => 'epic#createEpic', 'url' => '/api/epics', 'verb' => 'POST'],
+        ['name' => 'epic#updateEpic', 'url' => '/api/epics/{id}', 'verb' => 'PUT'],
+        ['name' => 'epic#deleteEpic', 'url' => '/api/epics/{id}', 'verb' => 'DELETE'],
+        ['name' => 'epic#addTask', 'url' => '/api/epics/{id}/tasks', 'verb' => 'POST'],
+        ['name' => 'epic#removeTask', 'url' => '/api/epics/{id}/tasks', 'verb' => 'DELETE'],
+
         // Settings routes
         ['name' => 'settings#get', 'url' => '/api/settings', 'verb' => 'GET'],
         ['name' => 'settings#update', 'url' => '/api/settings', 'verb' => 'PUT'],

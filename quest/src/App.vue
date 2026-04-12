@@ -20,11 +20,12 @@ import DashboardPage from './pages/DashboardPage.vue'
 import AchievementsPage from './pages/AchievementsPage.vue'
 import CharacterPage from './pages/CharacterPage.vue'
 import AdventurePage from './pages/AdventurePage.vue'
+import QuestsPage from './pages/QuestsPage.vue'
 import SettingsPage from './pages/SettingsPage.vue'
 
 const PAGE_MAP = {
 	dashboard: 'DashboardPage',
-	quests: 'DashboardPage',
+	quests: 'QuestsPage',
 	achievements: 'AchievementsPage',
 	character: 'CharacterPage',
 	adventure: 'AdventurePage',
@@ -41,6 +42,7 @@ export default {
 		AchievementsPage,
 		CharacterPage,
 		AdventurePage,
+		QuestsPage,
 		SettingsPage,
 	},
 

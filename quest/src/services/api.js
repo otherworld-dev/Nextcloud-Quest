@@ -129,6 +129,43 @@ class QuestAPI {
 		return data
 	}
 
+	// ─── Epics ───────────────────────────────────────────────
+
+	async getEpics() {
+		const { data } = await axios.get(`${this.baseURL}/epics`)
+		return data
+	}
+
+	async getEpic(id) {
+		const { data } = await axios.get(`${this.baseURL}/epics/${id}`)
+		return data
+	}
+
+	async createEpic(epicData) {
+		const { data } = await axios.post(`${this.baseURL}/epics`, epicData)
+		return data
+	}
+
+	async updateEpic(id, epicData) {
+		const { data } = await axios.put(`${this.baseURL}/epics/${id}`, epicData)
+		return data
+	}
+
+	async deleteEpic(id) {
+		const { data } = await axios.delete(`${this.baseURL}/epics/${id}`)
+		return data
+	}
+
+	async addTaskToEpic(epicId, taskData) {
+		const { data } = await axios.post(`${this.baseURL}/epics/${epicId}/tasks`, taskData)
+		return data
+	}
+
+	async removeTaskFromEpic(epicId, taskData) {
+		const { data } = await axios.delete(`${this.baseURL}/epics/${epicId}/tasks`, { data: taskData })
+		return data
+	}
+
 	// ─── Settings ────────────────────────────────────────────
 
 	async getSettings() {

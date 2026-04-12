@@ -55,6 +55,25 @@ class Application extends App implements IBootstrap {
             return new \OCA\NextcloudQuest\Db\AchievementMapper($c->get(\OCP\IDBConnection::class));
         });
 
+        // Register epic system mappers
+        $context->registerService(\OCA\NextcloudQuest\Db\EpicMapper::class, function($c) {
+            return new \OCA\NextcloudQuest\Db\EpicMapper($c->get(\OCP\IDBConnection::class));
+        });
+
+        $context->registerService(\OCA\NextcloudQuest\Db\EpicTaskMapper::class, function($c) {
+            return new \OCA\NextcloudQuest\Db\EpicTaskMapper($c->get(\OCP\IDBConnection::class));
+        });
+
+        // Register epic service
+        $context->registerService(\OCA\NextcloudQuest\Service\EpicService::class, function($c) {
+            return new \OCA\NextcloudQuest\Service\EpicService(
+                $c->get(\OCA\NextcloudQuest\Db\EpicMapper::class),
+                $c->get(\OCA\NextcloudQuest\Db\EpicTaskMapper::class),
+                $c->get(\OCP\IDBConnection::class),
+                $c->get(\Psr\Log\LoggerInterface::class)
+            );
+        });
+
         // Register character system mappers
         $context->registerService(\OCA\NextcloudQuest\Db\CharacterAgeMapper::class, function($c) {
             return new \OCA\NextcloudQuest\Db\CharacterAgeMapper($c->get(\OCP\IDBConnection::class));

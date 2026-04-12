@@ -19,6 +19,35 @@
 			<StatCard :icon="icons.achievements" label="Achievements" :value="achievementSummary" :subtitle="achievementSubtitle" />
 		</section>
 
+		<!-- Active Epics -->
+		<section v-if="activeEpics.length > 0" class="content-section">
+			<div class="section-header">
+				<h2 class="section-title">Active Epics</h2>
+				<button class="btn btn-secondary" @click="navigateToQuests">View All</button>
+			</div>
+			<div class="epics-row">
+				<div
+					v-for="epic in activeEpics.slice(0, 4)"
+					:key="epic.id"
+					class="epic-mini"
+					:style="{ '--epic-color': epic.color || '#0082c9' }"
+					@click="navigateToQuests"
+				>
+					<div class="epic-mini-top">
+						<span class="epic-mini-emoji">{{ epic.emoji || '\uD83D\uDCDC' }}</span>
+						<div class="epic-mini-info">
+							<span class="epic-mini-title">{{ epic.title }}</span>
+							<span class="epic-mini-tasks">{{ epic.completed_tasks }}/{{ epic.total_tasks }} tasks</span>
+						</div>
+						<span class="epic-mini-tier" :class="epic.tier">{{ epic.tier }}</span>
+					</div>
+					<div class="epic-mini-bar">
+						<div class="epic-mini-fill" :style="{ width: (epic.progress_percentage || 0) + '%' }" />
+					</div>
+				</div>
+			</div>
+		</section>
+
 		<!-- Task lists -->
 		<section class="content-section">
 			<div class="section-header">
@@ -220,8 +249,8 @@ export default {
 	},
 
 	computed: {
-		...mapState('quest', ['stats', 'taskLists', 'achievements', 'loading']),
-		...mapGetters('quest', ['unlockedAchievements']),
+		...mapState('quest', ['stats', 'taskLists', 'achievements', 'epics', 'loading']),
+		...mapGetters('quest', ['unlockedAchievements', 'activeEpics']),
 
 		achievementSummary() {
 			return `${this.stats.achievements.unlocked}/${this.stats.achievements.total}`
@@ -269,10 +298,16 @@ export default {
 	mounted() {
 		this.loadTasks()
 		this.loadAchievements()
+		this.loadEpics()
 	},
 
 	methods: {
-		...mapActions('quest', ['loadTaskLists', 'loadAchievements', 'completeTask']),
+		...mapActions('quest', ['loadTaskLists', 'loadAchievements', 'loadEpics', 'completeTask']),
+
+		navigateToQuests() {
+			this.$store.commit('quest/setActivePage', 'quests')
+			window.history.pushState({}, '', '/index.php/apps/quest/quests')
+		},
 
 		iconUrl(icon) {
 			return generateFilePath('quest', '', 'img/achievements/' + (icon || 'default.svg'))
@@ -493,6 +528,90 @@ export default {
 	background: var(--color-background-hover);
 	color: var(--color-main-text);
 	font-size: var(--font-size-small);
+}
+
+/* ── Active Epics ── */
+.epics-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: 12px;
+}
+
+.epic-mini {
+	background: var(--color-main-background);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-large);
+	padding: 14px 16px;
+	border-left: 4px solid var(--epic-color);
+	cursor: pointer;
+	transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.epic-mini:hover {
+	box-shadow: var(--shadow-md);
+	transform: translateY(-2px);
+}
+
+.epic-mini-top {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 8px;
+}
+
+.epic-mini-emoji {
+	font-size: 22px;
+	flex-shrink: 0;
+}
+
+.epic-mini-info {
+	flex: 1;
+	min-width: 0;
+}
+
+.epic-mini-title {
+	display: block;
+	font-size: var(--font-size-small);
+	font-weight: 600;
+	color: var(--color-main-text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.epic-mini-tasks {
+	display: block;
+	font-size: 11px;
+	color: var(--color-text-light);
+}
+
+.epic-mini-tier {
+	font-size: 9px;
+	padding: 2px 6px;
+	border-radius: 8px;
+	font-weight: 700;
+	text-transform: uppercase;
+	color: white;
+	flex-shrink: 0;
+}
+.epic-mini-tier.common { background: #9e9e9e; }
+.epic-mini-tier.uncommon { background: #4caf50; }
+.epic-mini-tier.rare { background: #2196f3; }
+.epic-mini-tier.epic { background: #9c27b0; }
+.epic-mini-tier.legendary { background: #ff9800; }
+
+.epic-mini-bar {
+	height: 4px;
+	background: var(--color-background-dark);
+	border-radius: 2px;
+	overflow: hidden;
+}
+
+.epic-mini-fill {
+	height: 100%;
+	border-radius: 2px;
+	background: var(--epic-color);
+	transition: width var(--transition-slow);
 }
 
 /* ── Task list cards ── */

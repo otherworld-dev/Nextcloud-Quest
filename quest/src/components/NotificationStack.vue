@@ -12,6 +12,7 @@
 					<span v-if="notif.type === 'achievement'">🏆</span>
 					<span v-else-if="notif.type === 'level_up'">🎉</span>
 					<span v-else-if="notif.type === 'xp_gain'">✨</span>
+					<span v-else-if="notif.type === 'epic_complete'">🏆</span>
 					<span v-else>🔔</span>
 				</div>
 				<div class="notification-body">
@@ -95,6 +96,11 @@ export default {
 
 .notification-toast.xp_gain {
 	border-left-color: var(--color-primary-element, #0082c9);
+}
+
+.notification-toast.epic_complete {
+	border-left-color: #ff9800;
+	background: linear-gradient(135deg, var(--color-main-background), rgba(255, 152, 0, 0.05));
 }
 
 .notification-icon {

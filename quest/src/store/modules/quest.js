@@ -78,6 +78,9 @@ const state = {
 		hide_completed: true,
 	},
 
+	// Epics
+	epics: [],
+
 	// Notification queue
 	notifications: [],
 
@@ -90,6 +93,7 @@ const state = {
 		character: false,
 		settings: false,
 		completingTask: false,
+		epics: false,
 	},
 }
 
@@ -156,6 +160,18 @@ const mutations = {
 		state.stats.achievements.percentage = state.stats.achievements.total
 			? Math.round((state.stats.achievements.unlocked / state.stats.achievements.total) * 100)
 			: 0
+	},
+
+	setEpics(state, epics) {
+		state.epics = epics
+	},
+
+	addEpic(state, epic) {
+		state.epics.unshift(epic)
+	},
+
+	removeEpicFromList(state, epicId) {
+		state.epics = state.epics.filter(e => e.id !== epicId)
 	},
 
 	pushNotification(state, notification) {
@@ -314,6 +330,17 @@ const actions = {
 					message: taskTitle,
 				})
 
+				// Handle completed epics
+				const completedEpics = result.completed_epics || []
+				completedEpics.forEach(epic => {
+					commit('pushNotification', {
+						type: 'epic_complete',
+						title: `${epic.emoji || '\u{1F3C6}'} Epic Complete!`,
+						message: `${epic.title} — +${epic.bonus_xp} bonus XP`,
+						data: epic,
+					})
+				})
+
 				// Update task counts from response
 				if (result.stats) {
 					commit('setStats', {
@@ -379,6 +406,73 @@ const actions = {
 		}
 	},
 
+	async loadEpics({ commit }) {
+		commit('setLoading', { type: 'epics', loading: true })
+		try {
+			const response = await api.getEpics()
+			if (response.status === 'success') {
+				commit('setEpics', response.data || [])
+			}
+		} catch (error) {
+			console.error('Failed to load epics:', error)
+		} finally {
+			commit('setLoading', { type: 'epics', loading: false })
+		}
+	},
+
+	async createEpic({ commit }, epicData) {
+		try {
+			const response = await api.createEpic(epicData)
+			if (response.status === 'success') {
+				commit('addEpic', response.data)
+				return response.data
+			}
+		} catch (error) {
+			console.error('Failed to create epic:', error)
+			throw error
+		}
+	},
+
+	async updateEpic({ dispatch }, { id, data }) {
+		try {
+			await api.updateEpic(id, data)
+			dispatch('loadEpics')
+		} catch (error) {
+			console.error('Failed to update epic:', error)
+			throw error
+		}
+	},
+
+	async deleteEpic({ commit }, epicId) {
+		try {
+			await api.deleteEpic(epicId)
+			commit('removeEpicFromList', epicId)
+		} catch (error) {
+			console.error('Failed to delete epic:', error)
+			throw error
+		}
+	},
+
+	async addTaskToEpic({ dispatch }, { epicId, taskData }) {
+		try {
+			await api.addTaskToEpic(epicId, taskData)
+			dispatch('loadEpics')
+		} catch (error) {
+			console.error('Failed to add task to epic:', error)
+			throw error
+		}
+	},
+
+	async removeTaskFromEpic({ dispatch }, { epicId, taskData }) {
+		try {
+			await api.removeTaskFromEpic(epicId, taskData)
+			dispatch('loadEpics')
+		} catch (error) {
+			console.error('Failed to remove task from epic:', error)
+			throw error
+		}
+	},
+
 	async loadSettings({ commit }) {
 		commit('setLoading', { type: 'settings', loading: true })
 		try {
@@ -430,6 +524,9 @@ const getters = {
 	},
 
 	xpPercentage: state => state.stats.level.progress_percentage || 0,
+
+	activeEpics: state => state.epics.filter(e => e.status === 'active'),
+	completedEpics: state => state.epics.filter(e => e.status === 'completed'),
 }
 
 export default {

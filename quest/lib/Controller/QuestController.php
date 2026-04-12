@@ -14,6 +14,7 @@ use OCA\NextcloudQuest\Service\LevelService;
 use OCA\NextcloudQuest\Db\QuestMapper;
 use OCA\NextcloudQuest\Db\HistoryMapper;
 use OCA\NextcloudQuest\Integration\TasksApiIntegration;
+use OCA\NextcloudQuest\Service\EpicService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
@@ -36,6 +37,8 @@ class QuestController extends Controller {
     private $historyMapper;
     /** @var TasksApiIntegration */
     private $tasksIntegration;
+    /** @var EpicService */
+    private $epicService;
 
     public function __construct(
         $appName,
@@ -47,7 +50,8 @@ class QuestController extends Controller {
         LevelService $levelService,
         QuestMapper $questMapper,
         HistoryMapper $historyMapper,
-        TasksApiIntegration $tasksIntegration = null
+        TasksApiIntegration $tasksIntegration = null,
+        ?EpicService $epicService = null
     ) {
         parent::__construct($appName, $request);
         $this->userSession = $userSession;
@@ -58,6 +62,7 @@ class QuestController extends Controller {
         $this->questMapper = $questMapper;
         $this->historyMapper = $historyMapper;
         $this->tasksIntegration = $tasksIntegration;
+        $this->epicService = $epicService;
     }
     
     /**
@@ -614,6 +619,17 @@ class QuestController extends Controller {
                 // Continue processing task completion even if achievements fail
             }
 
+            // Check if completed task belongs to any epics
+            $completedEpics = [];
+            try {
+                if ($this->epicService === null) {
+                    $this->epicService = \OC::$server->get(\OCA\NextcloudQuest\Service\EpicService::class);
+                }
+                $completedEpics = $this->epicService->onTaskCompleted($userId, (string)$taskId, (string)$listId, $xpReward);
+            } catch (\Throwable $e) {
+                error_log('Quest: Epic check failed (non-fatal): ' . $e->getMessage());
+            }
+
             // Get updated data from database including task counts
             $updatedUserData = $this->getSimpleUserData($userId);
             $finalXP = $updatedUserData['xp'];
@@ -681,6 +697,9 @@ class QuestController extends Controller {
                     'unlocked_at' => $a->getUnlockedAt(),
                 ];
             }, array_filter($newAchievements)));
+
+            // Include completed epics
+            $responseData['completed_epics'] = $completedEpics;
 
             return new JSONResponse([
                 'status' => 'success',
