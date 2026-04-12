@@ -5,8 +5,7 @@
 			<p class="page-subtitle">Configure your quest experience.</p>
 		</div>
 
-		<!-- Loading -->
-		<div v-if="loading.settings && loading.tasks" class="loading-state">
+		<div v-if="loading.settings" class="loading-state">
 			<div class="spinner" />
 			<p>Loading settings...</p>
 		</div>
@@ -14,168 +13,208 @@
 		<template v-else>
 			<!-- Task list selection -->
 			<section class="settings-section">
-				<div class="section-header">
-					<h2 class="section-title">Task List Selection</h2>
-					<div class="section-controls">
-						<button class="btn" @click="refreshLists" :disabled="loading.tasks">
-							🔄 Refresh
-						</button>
-						<button class="btn btn-primary" @click="saveSettings">
-							💾 Save
-						</button>
+				<div class="section-head">
+					<div>
+						<h3 class="section-title">Task Lists</h3>
+						<p class="section-desc">Choose which Nextcloud task lists to include in Quest.</p>
+					</div>
+					<div class="section-actions">
+						<button class="btn" @click="refreshLists" :disabled="loading.tasks">Refresh</button>
+						<button class="btn primary" @click="saveSettings">Save</button>
 					</div>
 				</div>
 
-				<div class="search-box">
-					<input v-model="listSearch" type="text" class="search-input" placeholder="Search lists...">
-				</div>
-
-				<div class="task-list-settings">
-					<div
-						v-for="list in filteredSettingsLists"
+				<div v-if="taskLists.length > 0" class="list-grid">
+					<label
+						v-for="list in taskLists"
 						:key="list.id || list.uri"
-						class="list-setting-item"
+						class="list-item"
 					>
-						<label class="list-toggle">
-							<input
-								type="checkbox"
-								:checked="isListIncluded(list)"
-								@change="toggleList(list)"
-							>
-							<span class="list-name">{{ list.displayName || list.name }}</span>
-						</label>
+						<input
+							type="checkbox"
+							:checked="isListIncluded(list)"
+							@change="toggleList(list)"
+						>
+						<span class="list-color" :style="{ background: getListColor(list) }" />
+						<span class="list-label">{{ list.displayName || list.name }}</span>
+						<span class="list-task-count">{{ (list.tasks || []).length }} tasks</span>
 						<input
 							type="color"
-							class="color-picker"
+							class="color-input"
 							:value="getListColor(list)"
 							@input="setListColor(list, $event.target.value)"
+							title="Set list color"
 						>
-					</div>
-
-					<div v-if="filteredSettingsLists.length === 0" class="empty-state small">
-						<p>No task lists found. Make sure Nextcloud Tasks is installed.</p>
-					</div>
+					</label>
 				</div>
+				<div v-else class="empty-msg">No task lists found. Install the Tasks app to get started.</div>
 			</section>
 
-			<!-- Display preferences -->
+			<!-- Display -->
 			<section class="settings-section">
-				<h2 class="section-title">Display Preferences</h2>
-				<div class="settings-controls">
-					<label class="setting-toggle">
-						<input type="checkbox" v-model="localSettings.hide_completed">
-						<span>Hide completed tasks</span>
+				<h3 class="section-title">Display</h3>
+				<div class="settings-grid">
+					<label class="setting-row">
+						<span class="setting-label">Show XP popup on completion</span>
+						<input type="checkbox" v-model="local.general.show_xp_popup" @change="markDirty">
+					</label>
+					<label class="setting-row">
+						<span class="setting-label">Show streak counter in sidebar</span>
+						<input type="checkbox" v-model="local.general.show_streak_counter" @change="markDirty">
+					</label>
+					<label class="setting-row">
+						<span class="setting-label">Show level progress in sidebar</span>
+						<input type="checkbox" v-model="local.general.show_level_progress" @change="markDirty">
+					</label>
+					<label class="setting-row">
+						<span class="setting-label">Compact view</span>
+						<input type="checkbox" v-model="local.general.compact_view" @change="markDirty">
+					</label>
+					<label class="setting-row">
+						<span class="setting-label">Enable animations</span>
+						<input type="checkbox" v-model="local.themes.enable_animations" @change="markDirty">
 					</label>
 				</div>
 			</section>
 
-			<!-- Color presets -->
+			<!-- Notifications -->
 			<section class="settings-section">
-				<h2 class="section-title">Color Presets</h2>
-				<div class="presets-grid">
-					<div
-						v-for="preset in colorPresets"
-						:key="preset.name"
-						class="preset-card"
-						@click="applyPreset(preset)"
-					>
-						<div class="preset-colors">
-							<div
-								v-for="(color, i) in preset.colors"
-								:key="i"
-								class="preset-dot"
-								:style="{ background: color }"
-							/>
-						</div>
-						<span class="preset-name">{{ preset.name }}</span>
-					</div>
+				<h3 class="section-title">Notifications</h3>
+				<div class="settings-grid">
+					<label class="setting-row">
+						<span class="setting-label">Achievement unlocks</span>
+						<input type="checkbox" v-model="local.notifications.notify_achievements" @change="markDirty">
+					</label>
+					<label class="setting-row">
+						<span class="setting-label">Level ups</span>
+						<input type="checkbox" v-model="local.notifications.notify_level_up" @change="markDirty">
+					</label>
+					<label class="setting-row">
+						<span class="setting-label">Streak milestones</span>
+						<input type="checkbox" v-model="local.notifications.notify_streak_milestones" @change="markDirty">
+					</label>
+					<label class="setting-row">
+						<span class="setting-label">Streak reminder</span>
+						<input type="checkbox" v-model="local.notifications.notify_streak_reminder" @change="markDirty">
+					</label>
+					<label class="setting-row">
+						<span class="setting-label">Daily summary</span>
+						<input type="checkbox" v-model="local.notifications.notify_daily_summary" @change="markDirty">
+					</label>
 				</div>
 			</section>
 
-			<!-- Danger zone -->
+			<!-- Gameplay -->
+			<section class="settings-section">
+				<h3 class="section-title">Gameplay</h3>
+				<div class="settings-grid">
+					<label class="setting-row">
+						<span class="setting-label">Difficulty</span>
+						<select v-model="local.gameplay.difficulty_level" @change="markDirty" class="setting-select">
+							<option value="easy">Easy</option>
+							<option value="normal">Normal</option>
+							<option value="hard">Hard</option>
+						</select>
+					</label>
+					<label class="setting-row">
+						<span class="setting-label">Streak grace period (hours)</span>
+						<select v-model="local.gameplay.streak_grace_period" @change="markDirty" class="setting-select">
+							<option value="6">6 hours</option>
+							<option value="12">12 hours</option>
+							<option value="24">24 hours</option>
+						</select>
+					</label>
+					<label class="setting-row">
+						<span class="setting-label">Weekend streak bonus</span>
+						<input type="checkbox" v-model="local.gameplay.weekend_streak_bonus" @change="markDirty">
+					</label>
+				</div>
+			</section>
+
+			<!-- Privacy -->
+			<section class="settings-section">
+				<h3 class="section-title">Privacy</h3>
+				<div class="settings-grid">
+					<label class="setting-row">
+						<span class="setting-label">Show on leaderboard</span>
+						<input type="checkbox" v-model="local.privacy.show_on_leaderboard" @change="markDirty">
+					</label>
+					<label class="setting-row">
+						<span class="setting-label">Anonymous leaderboard name</span>
+						<input type="checkbox" v-model="local.privacy.anonymous_leaderboard" @change="markDirty">
+					</label>
+					<label class="setting-row">
+						<span class="setting-label">Share achievements</span>
+						<input type="checkbox" v-model="local.privacy.share_achievements" @change="markDirty">
+					</label>
+				</div>
+			</section>
+
+			<!-- Data management -->
 			<section class="settings-section danger">
-				<h2 class="section-title">Data Management</h2>
-				<div class="danger-actions">
+				<h3 class="section-title">Data Management</h3>
+				<p class="section-desc">Export, backup, or reset your quest data.</p>
+				<div class="data-actions">
 					<button class="btn" @click="handleExport">Export Data</button>
 					<button class="btn" @click="handleBackup">Create Backup</button>
-					<button class="btn btn-danger" @click="handleReset">Reset Progress</button>
+					<button class="btn danger" @click="handleReset">Reset All Progress</button>
 				</div>
 			</section>
 
-			<!-- Summary -->
-			<section class="settings-section">
-				<h2 class="section-title">Summary</h2>
-				<div class="summary-grid">
-					<StatCard :icon="icons.lists" label="Total Lists" :value="taskLists.length" />
-					<StatCard :icon="icons.included" label="Included" :value="includedCount" />
-					<StatCard :icon="icons.colored" label="Colored" :value="coloredCount" />
-				</div>
-			</section>
+			<!-- Save bar -->
+			<div v-if="dirty" class="save-bar">
+				<span>You have unsaved changes</span>
+				<button class="btn primary" @click="saveSettings">Save Settings</button>
+			</div>
 		</template>
 	</div>
 </template>
 
 <script>
 import { mapState, mapActions } from 'vuex'
-import StatCard from '../components/StatCard.vue'
 import api from '../services/api'
 
 export default {
 	name: 'SettingsPage',
-	components: { StatCard },
 
 	data() {
 		return {
-			listSearch: '',
-			icons: {
-				lists: '\uD83D\uDCCB',
-				included: '\u2705',
-				colored: '\uD83C\uDFA8',
+			dirty: false,
+			local: {
+				general: {},
+				themes: {},
+				notifications: {},
+				gameplay: {},
+				privacy: {},
+				character: {},
 			},
-			localSettings: {
+			listSettings: {
 				included_lists: [],
 				list_colors: {},
-				hide_completed: true,
 			},
-			colorPresets: [
-				{ name: 'Default', colors: ['#0082c9', '#46ba61', '#f59e0b', '#e53e3e'] },
-				{ name: 'Warm', colors: ['#f97316', '#dc2626', '#fbbf24', '#fb7185'] },
-				{ name: 'Cool', colors: ['#3b82f6', '#06b6d4', '#8b5cf6', '#10b981'] },
-				{ name: 'Earth', colors: ['#92400e', '#059669', '#7c2d12', '#365314'] },
-			],
 		}
 	},
 
 	computed: {
 		...mapState('quest', ['taskLists', 'settings', 'loading']),
-
-		filteredSettingsLists() {
-			if (!this.listSearch) return this.taskLists
-			const q = this.listSearch.toLowerCase()
-			return this.taskLists.filter(l =>
-				(l.displayName || l.name || '').toLowerCase().includes(q),
-			)
-		},
-
-		includedCount() {
-			return this.localSettings.included_lists.length
-		},
-
-		coloredCount() {
-			return Object.keys(this.localSettings.list_colors).length
-		},
 	},
 
 	watch: {
 		settings: {
 			handler(val) {
-				this.localSettings = {
-					included_lists: [...(val.included_lists || [])],
-					list_colors: { ...(val.list_colors || {}) },
-					hide_completed: val.hide_completed ?? true,
+				if (val && typeof val === 'object') {
+					this.local = {
+						general: { ...(val.general || {}) },
+						themes: { ...(val.themes || {}) },
+						notifications: { ...(val.notifications || {}) },
+						gameplay: { ...(val.gameplay || {}) },
+						privacy: { ...(val.privacy || {}) },
+						character: { ...(val.character || {}) },
+					}
 				}
 			},
 			immediate: true,
+			deep: true,
 		},
 	},
 
@@ -187,47 +226,44 @@ export default {
 	methods: {
 		...mapActions('quest', ['loadSettings', 'updateSettings', 'loadTaskLists']),
 
+		markDirty() {
+			this.dirty = true
+		},
+
 		refreshLists() {
 			this.loadTaskLists()
 		},
 
 		isListIncluded(list) {
-			const id = list.id || list.uri
-			return this.localSettings.included_lists.includes(id)
+			return this.listSettings.included_lists.includes(list.id || list.uri)
 		},
 
 		toggleList(list) {
 			const id = list.id || list.uri
-			const idx = this.localSettings.included_lists.indexOf(id)
+			const idx = this.listSettings.included_lists.indexOf(id)
 			if (idx >= 0) {
-				this.localSettings.included_lists.splice(idx, 1)
+				this.listSettings.included_lists.splice(idx, 1)
 			} else {
-				this.localSettings.included_lists.push(id)
+				this.listSettings.included_lists.push(id)
 			}
+			this.dirty = true
 		},
 
 		getListColor(list) {
-			const id = list.id || list.uri
-			return this.localSettings.list_colors[id] || '#0082c9'
+			return this.listSettings.list_colors[list.id || list.uri] || list.color || '#0082c9'
 		},
 
 		setListColor(list, color) {
-			const id = list.id || list.uri
-			this.$set(this.localSettings.list_colors, id, color)
-		},
-
-		applyPreset(preset) {
-			this.taskLists.forEach((list, i) => {
-				const id = list.id || list.uri
-				this.$set(this.localSettings.list_colors, id, preset.colors[i % preset.colors.length])
-			})
+			this.$set(this.listSettings.list_colors, list.id || list.uri, color)
+			this.dirty = true
 		},
 
 		async saveSettings() {
 			try {
-				await this.updateSettings(this.localSettings)
+				await this.updateSettings(this.local)
+				this.dirty = false
 			} catch (e) {
-				console.error('Failed to save settings:', e)
+				console.error('Failed to save:', e)
 			}
 		},
 
@@ -255,7 +291,7 @@ export default {
 		},
 
 		async handleReset() {
-			if (!confirm('Are you sure? This will reset all your quest progress. This cannot be undone.')) {
+			if (!confirm('This will permanently reset ALL your quest progress including XP, achievements, and character data. This cannot be undone. Are you sure?')) {
 				return
 			}
 			try {
@@ -270,86 +306,261 @@ export default {
 </script>
 
 <style scoped>
-.settings-page { padding: 8px 0; }
-.page-header { margin-bottom: 24px; }
-.page-title { font-size: var(--font-size-huge); font-weight: 700; color: var(--color-main-text); margin: 0 0 4px; }
-.page-subtitle { font-size: var(--font-size-normal); color: var(--color-text-light); margin: 0; }
+.settings-page {
+	padding: 16px 8px;
+	max-width: 800px;
+}
 
+.page-header {
+	margin-bottom: 24px;
+	padding-bottom: 16px;
+	border-bottom: 1px solid var(--color-border);
+}
+
+.page-title {
+	font-size: var(--font-size-huge);
+	font-weight: 700;
+	color: var(--color-main-text);
+	margin: 0 0 4px;
+}
+
+.page-subtitle {
+	font-size: var(--font-size-normal);
+	color: var(--color-text-light);
+	margin: 0;
+}
+
+/* ── Sections ── */
 .settings-section {
 	background: var(--color-main-background);
+	border: 1px solid var(--color-border);
 	border-radius: var(--radius-large);
-	padding: 24px;
-	margin-bottom: 20px;
-	box-shadow: var(--shadow-sm);
+	padding: 20px;
+	margin-bottom: 16px;
 }
 
 .settings-section.danger {
-	border: 1px solid var(--color-error);
+	border-color: var(--color-error, #e9322d);
 }
 
-.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.section-title { font-size: var(--font-size-xlarge); font-weight: 600; margin: 0 0 16px; }
-.section-controls { display: flex; gap: 8px; }
+.section-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin-bottom: 16px;
+}
 
+.section-title {
+	font-size: var(--font-size-large);
+	font-weight: 600;
+	color: var(--color-main-text);
+	margin: 0 0 4px;
+}
+
+.section-desc {
+	font-size: var(--font-size-small);
+	color: var(--color-text-light);
+	margin: 0;
+}
+
+.section-actions {
+	display: flex;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+/* ── Buttons ── */
 .btn {
-	display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
-	border-radius: var(--radius-medium); border: 1px solid var(--color-border);
-	background: var(--color-main-background); color: var(--color-main-text);
-	cursor: pointer; font-size: var(--font-size-small);
-}
-.btn:hover { background: var(--color-background-hover); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-primary { background: var(--color-primary); color: white; border-color: var(--color-primary); }
-.btn-primary:hover { background: var(--color-primary-dark); }
-.btn-danger { background: var(--color-error); color: white; border-color: var(--color-error); }
-
-.search-box { margin-bottom: 16px; }
-.search-input {
-	width: 100%; padding: 8px 12px; border: 1px solid var(--color-border);
-	border-radius: var(--radius-medium); background: var(--color-main-background); color: var(--color-main-text);
+	padding: 6px 16px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-medium);
+	background: var(--color-main-background);
+	color: var(--color-main-text);
+	cursor: pointer;
+	font-size: var(--font-size-small);
+	font-weight: 500;
+	transition: all var(--transition-fast);
 }
 
-/* Task list settings */
-.task-list-settings { display: flex; flex-direction: column; gap: 8px; }
-.list-setting-item {
-	display: flex; align-items: center; gap: 12px; padding: 12px;
-	border-radius: var(--radius-medium); border: 1px solid var(--color-border);
+.btn:hover {
+	background: var(--color-background-hover);
 }
-.list-toggle { display: flex; align-items: center; gap: 8px; flex: 1; cursor: pointer; }
-.list-toggle input { width: 18px; height: 18px; cursor: pointer; }
-.list-name { font-size: var(--font-size-normal); }
-.color-picker { width: 36px; height: 36px; border: none; border-radius: var(--radius-small); cursor: pointer; padding: 0; }
 
-/* Settings controls */
-.settings-controls { display: flex; flex-direction: column; gap: 12px; }
-.setting-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: var(--font-size-normal); }
-.setting-toggle input { width: 18px; height: 18px; }
-
-/* Color presets */
-.presets-grid { display: flex; gap: 16px; flex-wrap: wrap; }
-.preset-card {
-	padding: 16px; border: 1px solid var(--color-border); border-radius: var(--radius-medium);
-	cursor: pointer; text-align: center; transition: all var(--transition-fast);
+.btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
-.preset-card:hover { border-color: var(--color-primary); box-shadow: var(--shadow-md); }
-.preset-colors { display: flex; gap: 6px; margin-bottom: 8px; justify-content: center; }
-.preset-dot { width: 24px; height: 24px; border-radius: 50%; }
-.preset-name { font-size: var(--font-size-small); font-weight: 500; }
 
-/* Danger zone */
-.danger-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn.primary {
+	background: var(--color-primary-element, #0082c9);
+	color: white;
+	border-color: transparent;
+}
 
-/* Summary */
-.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.btn.primary:hover {
+	filter: brightness(1.1);
+}
 
-/* Loading & empty */
-.loading-state { text-align: center; padding: 40px; }
-.spinner { width: 32px; height: 32px; border: 3px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.empty-state { text-align: center; padding: 20px; }
-.empty-state.small p { color: var(--color-text-light); }
+.btn.danger {
+	color: var(--color-error, #e9322d);
+	border-color: var(--color-error, #e9322d);
+}
 
-@media (max-width: 768px) {
-	.summary-grid { grid-template-columns: 1fr; }
+.btn.danger:hover {
+	background: var(--color-error, #e9322d);
+	color: white;
+}
+
+/* ── Task list grid ── */
+.list-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.list-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 12px;
+	border-radius: var(--radius-medium);
+	cursor: pointer;
+	transition: background var(--transition-fast);
+}
+
+.list-item:hover {
+	background: var(--color-background-hover);
+}
+
+.list-item input[type="checkbox"] {
+	width: 16px;
+	height: 16px;
+	accent-color: var(--color-primary-element, #0082c9);
+	cursor: pointer;
+}
+
+.list-color {
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.list-label {
+	flex: 1;
+	font-size: var(--font-size-normal);
+	color: var(--color-main-text);
+}
+
+.list-task-count {
+	font-size: var(--font-size-small);
+	color: var(--color-text-light);
+}
+
+.color-input {
+	width: 28px;
+	height: 28px;
+	border: none;
+	border-radius: var(--radius-small);
+	cursor: pointer;
+	padding: 0;
+	background: none;
+}
+
+/* ── Settings rows ── */
+.settings-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.setting-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 4px;
+	border-bottom: 1px solid var(--color-border);
+	cursor: pointer;
+}
+
+.setting-row:last-child {
+	border-bottom: none;
+}
+
+.setting-row:hover {
+	background: var(--color-background-hover);
+	border-radius: var(--radius-small);
+}
+
+.setting-label {
+	font-size: var(--font-size-normal);
+	color: var(--color-main-text);
+}
+
+.setting-row input[type="checkbox"] {
+	width: 16px;
+	height: 16px;
+	accent-color: var(--color-primary-element, #0082c9);
+	cursor: pointer;
+}
+
+.setting-select {
+	padding: 4px 8px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-small);
+	background: var(--color-main-background);
+	color: var(--color-main-text);
+	font-size: var(--font-size-small);
+}
+
+/* ── Data actions ── */
+.data-actions {
+	display: flex;
+	gap: 8px;
+	margin-top: 12px;
+	flex-wrap: wrap;
+}
+
+/* ── Save bar ── */
+.save-bar {
+	position: sticky;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 20px;
+	background: var(--color-background-hover);
+	border: 1px solid var(--color-primary-element, #0082c9);
+	border-radius: var(--radius-large);
+	margin-top: 16px;
+	font-size: var(--font-size-small);
+	color: var(--color-main-text);
+}
+
+/* ── Empty / loading ── */
+.empty-msg {
+	padding: 16px;
+	text-align: center;
+	color: var(--color-text-light);
+	font-size: var(--font-size-small);
+}
+
+.loading-state {
+	text-align: center;
+	padding: 60px;
+}
+
+.spinner {
+	width: 36px;
+	height: 36px;
+	border: 3px solid var(--color-border);
+	border-top-color: var(--color-primary-element, #0082c9);
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+	margin: 0 auto 16px;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
 }
 </style>

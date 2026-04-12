@@ -336,10 +336,16 @@ const actions = {
 	async loadCharacter({ commit }) {
 		commit('setLoading', { type: 'character', loading: true })
 		try {
-			const response = await api.getCharacterData()
-			if (response.status === 'success') {
-				commit('setCharacter', response.data || response)
-			}
+			const [charResponse, itemsResponse] = await Promise.all([
+				api.getCharacterData(),
+				api.getAvailableItems(),
+			])
+			const charData = charResponse.status === 'success' ? (charResponse.data || {}) : {}
+			const itemsData = itemsResponse.status === 'success' ? (itemsResponse.data || {}) : {}
+			commit('setCharacter', {
+				...charData,
+				items: itemsData.items || itemsData.available_items || [],
+			})
 		} catch (error) {
 			console.error('Failed to load character:', error)
 		} finally {

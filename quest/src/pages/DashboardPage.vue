@@ -106,6 +106,33 @@
 			</div>
 		</section>
 
+		<!-- Next goals -->
+		<section v-if="nextGoals.length > 0" class="content-section">
+			<div class="section-header">
+				<h2 class="section-title">Next Goals</h2>
+			</div>
+			<div class="goals-grid">
+				<div v-for="goal in nextGoals" :key="goal.key" class="goal-card">
+					<div class="goal-progress-ring">
+						<svg width="48" height="48" viewBox="0 0 48 48">
+							<circle cx="24" cy="24" r="20" fill="none" stroke="var(--color-border)" stroke-width="3" />
+							<circle cx="24" cy="24" r="20" fill="none" stroke="var(--color-primary-element, #0082c9)"
+								stroke-width="3" stroke-linecap="round"
+								:stroke-dasharray="125.6"
+								:stroke-dashoffset="125.6 * (1 - goal.progress / 100)"
+								transform="rotate(-90 24 24)" />
+						</svg>
+						<span class="goal-pct">{{ goal.progress }}%</span>
+					</div>
+					<div class="goal-info">
+						<span class="goal-name">{{ goal.name }}</span>
+						<span class="goal-desc">{{ goal.description }}</span>
+					</div>
+					<span class="goal-rarity" :class="goal.rarity">{{ goal.rarity }}</span>
+				</div>
+			</div>
+		</section>
+
 		<!-- Recent activity -->
 		<section class="content-section">
 			<div class="section-header">
@@ -212,6 +239,17 @@ export default {
 				.slice()
 				.sort((a, b) => new Date(b.unlocked_at) - new Date(a.unlocked_at))
 				.slice(0, 5)
+		},
+
+		nextGoals() {
+			return this.achievements
+				.filter(a => !a.unlocked && (a.progress_percentage || a.progress || 0) > 0)
+				.map(a => ({
+					...a,
+					progress: a.progress_percentage || a.progress || 0,
+				}))
+				.sort((a, b) => b.progress - a.progress)
+				.slice(0, 4)
 		},
 	},
 
@@ -594,6 +632,85 @@ export default {
 	font-size: var(--font-size-small);
 	font-style: italic;
 }
+
+/* ── Next goals ── */
+.goals-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 12px;
+}
+
+.goal-card {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 16px;
+	background: var(--color-main-background);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-large);
+	transition: box-shadow var(--transition-fast);
+}
+
+.goal-card:hover {
+	box-shadow: var(--shadow-md);
+}
+
+.goal-progress-ring {
+	position: relative;
+	width: 48px;
+	height: 48px;
+	flex-shrink: 0;
+}
+
+.goal-pct {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 10px;
+	font-weight: 700;
+	color: var(--color-main-text);
+}
+
+.goal-info {
+	flex: 1;
+	min-width: 0;
+}
+
+.goal-name {
+	display: block;
+	font-size: var(--font-size-small);
+	font-weight: 600;
+	color: var(--color-main-text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.goal-desc {
+	display: block;
+	font-size: 12px;
+	color: var(--color-text-light);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.goal-rarity {
+	font-size: 9px;
+	padding: 2px 6px;
+	border-radius: 8px;
+	font-weight: 700;
+	text-transform: uppercase;
+	color: white;
+	flex-shrink: 0;
+}
+
+.goal-rarity.common { background: #9e9e9e; }
+.goal-rarity.rare { background: #2196f3; }
+.goal-rarity.epic { background: #9c27b0; }
+.goal-rarity.legendary { background: #ff9800; }
 
 /* ── Activity section ── */
 .activity-grid {
