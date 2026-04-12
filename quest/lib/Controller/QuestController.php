@@ -661,19 +661,31 @@ class QuestController extends Controller {
 
             if ($levelUp) {
                 $responseData['level_up'] = true;
+                $responseData['user_stats']['leveled_up'] = true;
                 $responseData['new_level'] = $finalLevel;
                 $responseData['new_rank'] = $this->getRankTitle($finalLevel);
             }
-            
+
+            // Include newly unlocked achievements with display names
+            $allDefs = \OCA\NextcloudQuest\Service\AchievementDefinitions::getAll();
+            $responseData['achievements'] = array_values(array_map(function($a) use ($allDefs) {
+                $key = $a->getAchievementKey();
+                $def = $allDefs[$key] ?? [];
+                return [
+                    'key' => $key,
+                    'name' => $def['name'] ?? $key,
+                    'description' => $def['description'] ?? '',
+                    'icon' => $def['icon'] ?? 'default.svg',
+                    'rarity' => $def['rarity'] ?? 'Common',
+                    'category' => $def['category'] ?? '',
+                    'unlocked_at' => $a->getUnlockedAt(),
+                ];
+            }, array_filter($newAchievements)));
+
             return new JSONResponse([
                 'status' => 'success',
                 'message' => 'Quest completed successfully!',
                 'data' => $responseData,
-                'debug' => [
-                    'calculated_xp' => $newXP,
-                    'database_xp' => $finalXP,
-                    'update_result' => $updateResult
-                ]
             ]);
             
         } catch (\Throwable $e) {
