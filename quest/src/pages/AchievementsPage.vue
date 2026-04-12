@@ -64,7 +64,7 @@
 				<div class="card-header">
 					<span class="rarity-badge" :class="a.rarity">{{ a.rarity }}</span>
 				</div>
-				<div class="card-icon">{{ a.icon || '\uD83C\uDFC6' }}</div>
+				<div class="card-icon"><img :src="iconUrl(a.icon)" :alt="a.name" class="achievement-img"></div>
 				<div class="card-name">{{ a.name }}</div>
 				<div class="card-desc">{{ a.description }}</div>
 				<div class="card-progress">
@@ -88,7 +88,7 @@
 				:class="[a.unlocked ? 'unlocked' : 'locked']"
 				@click="selectedAchievement = a"
 			>
-				<span class="list-icon">{{ a.icon || '\uD83C\uDFC6' }}</span>
+				<span class="list-icon"><img :src="iconUrl(a.icon)" :alt="a.name" class="achievement-img-sm"></span>
 				<div class="list-info">
 					<span class="list-name">{{ a.name }}</span>
 					<span class="list-desc">{{ a.description }}</span>
@@ -118,7 +118,7 @@
 					<button class="modal-close" @click="selectedAchievement = null">&times;</button>
 				</div>
 				<div class="modal-body">
-					<div class="detail-icon">{{ selectedAchievement.icon || '\uD83C\uDFC6' }}</div>
+					<div class="detail-icon"><img :src="iconUrl(selectedAchievement.icon)" :alt="selectedAchievement.name" class="achievement-img-lg"></div>
 					<span class="rarity-badge large" :class="selectedAchievement.rarity">{{ selectedAchievement.rarity }}</span>
 					<h2 class="detail-name">{{ selectedAchievement.name }}</h2>
 					<p class="detail-desc">{{ selectedAchievement.description }}</p>
@@ -146,6 +146,7 @@
 
 <script>
 import { mapState, mapActions, mapGetters } from 'vuex'
+import { generateFilePath } from '@nextcloud/router'
 import StatCard from '../components/StatCard.vue'
 
 export default {
@@ -219,6 +220,11 @@ export default {
 	methods: {
 		...mapActions('quest', ['loadAchievements']),
 
+		iconUrl(icon) {
+			const file = icon || 'default.svg'
+			return generateFilePath('quest', '', 'img/achievements/' + file)
+		},
+
 		getProgress(a) {
 			if (a.unlocked) return 100
 			return a.progress_percentage || a.progress || 0
@@ -291,7 +297,10 @@ export default {
 @keyframes glow { from { box-shadow: 0 0 10px rgba(255,152,0,0.2); } to { box-shadow: 0 0 20px rgba(255,152,0,0.4); } }
 
 .card-header { text-align: right; margin-bottom: 8px; }
-.card-icon { font-size: 48px; margin-bottom: 8px; }
+.card-icon { margin-bottom: 8px; }
+.achievement-img { width: 64px; height: 64px; object-fit: contain; }
+.achievement-img-sm { width: 36px; height: 36px; object-fit: contain; }
+.achievement-img-lg { width: 96px; height: 96px; object-fit: contain; }
 .card-name { font-size: var(--font-size-normal); font-weight: 600; margin-bottom: 4px; }
 .card-desc { font-size: var(--font-size-small); color: var(--color-text-light); margin-bottom: 12px; line-height: 1.4; }
 
@@ -349,7 +358,7 @@ export default {
 .modal-header h3 { margin: 0; }
 .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--color-text-light); }
 .modal-body { padding: 20px; text-align: center; }
-.detail-icon { font-size: 72px; margin-bottom: 12px; }
+.detail-icon { margin-bottom: 12px; }
 .detail-name { font-size: var(--font-size-xxlarge); font-weight: 600; margin: 12px 0 8px; }
 .detail-desc { font-size: var(--font-size-normal); color: var(--color-text-light); margin-bottom: 20px; }
 .detail-meta { text-align: left; margin-bottom: 20px; }
