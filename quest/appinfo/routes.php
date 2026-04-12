@@ -86,6 +86,10 @@ return [
         ['name' => 'adventureWorld#completeBoss', 'url' => '/api/adventure/complete-boss/{worldNumber}', 'verb' => 'POST'],
         ['name' => 'adventureWorld#getProgress', 'url' => '/api/adventure-old/progress', 'verb' => 'GET'],
 
+        // Journey system API routes
+        ['name' => 'journey#getStatus', 'url' => '/api/journey/status', 'verb' => 'GET'],
+        ['name' => 'journey#getLog', 'url' => '/api/journey/log', 'verb' => 'GET'],
+
         // Epic endpoints
         ['name' => 'epic#getEpics', 'url' => '/api/epics', 'verb' => 'GET'],
         ['name' => 'epic#getEpic', 'url' => '/api/epics/{id}', 'verb' => 'GET'],

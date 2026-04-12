@@ -81,6 +81,26 @@ const state = {
 	// Epics
 	epics: [],
 
+	// Journey
+	journey: {
+		current_age_key: 'stone',
+		current_age_name: 'Stone Age',
+		steps_taken: 0,
+		steps_per_encounter: 3,
+		steps_remaining: 3,
+		total_steps: 0,
+		encounters_completed: 0,
+		bosses_defeated: 0,
+		battles_won: 0,
+		battles_lost: 0,
+		treasures_found: 0,
+		events_completed: 0,
+		prestige_level: 0,
+		player_power: 10,
+		theme_colors: {},
+		log: [],
+	},
+
 	// Notification queue
 	notifications: [],
 
@@ -94,6 +114,7 @@ const state = {
 		settings: false,
 		completingTask: false,
 		epics: false,
+		journey: false,
 	},
 }
 
@@ -168,6 +189,14 @@ const mutations = {
 
 	addEpic(state, epic) {
 		state.epics.unshift(epic)
+	},
+
+	setJourney(state, data) {
+		state.journey = { ...state.journey, ...data }
+	},
+
+	setJourneyLog(state, log) {
+		state.journey.log = log
 	},
 
 	removeEpicFromList(state, epicId) {
@@ -341,6 +370,38 @@ const actions = {
 					})
 				})
 
+				// Handle journey encounter
+				const encounter = result.journey_encounter
+				if (encounter) {
+					const typeIcons = { battle: '\u2694\uFE0F', boss: '\uD83D\uDC80', treasure: '\uD83D\uDCE6', event: '\uD83D\uDCDC' }
+					const icon = typeIcons[encounter.encounter_type] || '\u2728'
+					let title = ''
+					let type = 'journey'
+
+					if (encounter.encounter_type === 'battle' || encounter.encounter_type === 'boss') {
+						if (encounter.outcome === 'win') {
+							title = `${icon} Defeated ${encounter.encounter_name}!`
+							type = encounter.encounter_type === 'boss' ? 'journey_boss' : 'journey_win'
+						} else {
+							title = `${icon} Defeated by ${encounter.encounter_name}`
+							type = 'journey_lose'
+						}
+					} else if (encounter.encounter_type === 'treasure') {
+						title = `${icon} Found ${encounter.rewards?.item_name || 'treasure'}!`
+						type = 'journey_treasure'
+					} else {
+						title = `${icon} ${encounter.encounter_name}`
+						type = 'journey_event'
+					}
+
+					const rewardParts = []
+					if (encounter.rewards?.xp) rewardParts.push(`+${encounter.rewards.xp} XP`)
+					if (encounter.rewards?.item_name) rewardParts.push(encounter.rewards.item_name)
+					if (encounter.rewards?.health_change) rewardParts.push(`${encounter.rewards.health_change} HP`)
+
+					commit('pushNotification', { type, title, message: rewardParts.join(' | ') || encounter.age_name })
+				}
+
 				// Update task counts from response
 				if (result.stats) {
 					commit('setStats', {
@@ -403,6 +464,31 @@ const actions = {
 		} catch (error) {
 			console.error('Failed to unequip item:', error)
 			throw error
+		}
+	},
+
+	async loadJourney({ commit }) {
+		commit('setLoading', { type: 'journey', loading: true })
+		try {
+			const response = await api.getJourneyStatus()
+			if (response.status === 'success') {
+				commit('setJourney', response.data || {})
+			}
+		} catch (error) {
+			console.error('Failed to load journey:', error)
+		} finally {
+			commit('setLoading', { type: 'journey', loading: false })
+		}
+	},
+
+	async loadJourneyLog({ commit }, { limit = 20, offset = 0 } = {}) {
+		try {
+			const response = await api.getJourneyLog(limit, offset)
+			if (response.status === 'success') {
+				commit('setJourneyLog', response.data || [])
+			}
+		} catch (error) {
+			console.error('Failed to load journey log:', error)
 		}
 	},
 

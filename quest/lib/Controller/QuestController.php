@@ -15,6 +15,7 @@ use OCA\NextcloudQuest\Db\QuestMapper;
 use OCA\NextcloudQuest\Db\HistoryMapper;
 use OCA\NextcloudQuest\Integration\TasksApiIntegration;
 use OCA\NextcloudQuest\Service\EpicService;
+use OCA\NextcloudQuest\Service\JourneyService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
@@ -39,6 +40,8 @@ class QuestController extends Controller {
     private $tasksIntegration;
     /** @var EpicService */
     private $epicService;
+    /** @var JourneyService */
+    private $journeyService;
 
     public function __construct(
         $appName,
@@ -51,7 +54,8 @@ class QuestController extends Controller {
         QuestMapper $questMapper,
         HistoryMapper $historyMapper,
         TasksApiIntegration $tasksIntegration = null,
-        ?EpicService $epicService = null
+        ?EpicService $epicService = null,
+        ?JourneyService $journeyService = null
     ) {
         parent::__construct($appName, $request);
         $this->userSession = $userSession;
@@ -63,6 +67,7 @@ class QuestController extends Controller {
         $this->historyMapper = $historyMapper;
         $this->tasksIntegration = $tasksIntegration;
         $this->epicService = $epicService;
+        $this->journeyService = $journeyService;
     }
     
     /**
@@ -700,6 +705,18 @@ class QuestController extends Controller {
 
             // Include completed epics
             $responseData['completed_epics'] = $completedEpics;
+
+            // Journey encounter check
+            $journeyEncounter = null;
+            try {
+                if ($this->journeyService === null) {
+                    $this->journeyService = \OC::$server->get(\OCA\NextcloudQuest\Service\JourneyService::class);
+                }
+                $journeyEncounter = $this->journeyService->onTaskCompleted($userId, $xpReward);
+            } catch (\Throwable $e) {
+                error_log('Quest: Journey check failed (non-fatal): ' . $e->getMessage());
+            }
+            $responseData['journey_encounter'] = $journeyEncounter;
 
             return new JSONResponse([
                 'status' => 'success',

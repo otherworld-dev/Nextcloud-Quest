@@ -74,6 +74,18 @@ class Application extends App implements IBootstrap {
             );
         });
 
+        // Register journey service
+        $context->registerService(\OCA\NextcloudQuest\Service\JourneyService::class, function($c) {
+            return new \OCA\NextcloudQuest\Service\JourneyService(
+                $c->get(\OCP\IDBConnection::class),
+                $c->get(\OCA\NextcloudQuest\Service\AdventureThemeService::class),
+                $c->get(\OCA\NextcloudQuest\Db\CharacterItemMapper::class),
+                $c->get(\OCA\NextcloudQuest\Db\CharacterUnlockMapper::class),
+                $c->get(\OCA\NextcloudQuest\Db\QuestMapper::class),
+                $c->get(\Psr\Log\LoggerInterface::class)
+            );
+        });
+
         // Register character system mappers
         $context->registerService(\OCA\NextcloudQuest\Db\CharacterAgeMapper::class, function($c) {
             return new \OCA\NextcloudQuest\Db\CharacterAgeMapper($c->get(\OCP\IDBConnection::class));

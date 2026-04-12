@@ -13,6 +13,10 @@
 					<span v-else-if="notif.type === 'level_up'">🎉</span>
 					<span v-else-if="notif.type === 'xp_gain'">✨</span>
 					<span v-else-if="notif.type === 'epic_complete'">🏆</span>
+					<span v-else-if="notif.type === 'journey_win' || notif.type === 'journey_boss'">⚔️</span>
+					<span v-else-if="notif.type === 'journey_lose'">💀</span>
+					<span v-else-if="notif.type === 'journey_treasure'">📦</span>
+					<span v-else-if="notif.type === 'journey_event'">📜</span>
 					<span v-else>🔔</span>
 				</div>
 				<div class="notification-body">
@@ -101,6 +105,23 @@ export default {
 .notification-toast.epic_complete {
 	border-left-color: #ff9800;
 	background: linear-gradient(135deg, var(--color-main-background), rgba(255, 152, 0, 0.05));
+}
+
+.notification-toast.journey_win,
+.notification-toast.journey_boss {
+	border-left-color: var(--color-success, #46ba61);
+}
+
+.notification-toast.journey_lose {
+	border-left-color: var(--color-error, #e9322d);
+}
+
+.notification-toast.journey_treasure {
+	border-left-color: #2196f3;
+}
+
+.notification-toast.journey_event {
+	border-left-color: #9c27b0;
 }
 
 .notification-icon {

@@ -166,6 +166,20 @@ class QuestAPI {
 		return data
 	}
 
+	// ─── Journey ─────────────────────────────────────────────
+
+	async getJourneyStatus() {
+		const { data } = await axios.get(`${this.baseURL}/journey/status`)
+		return data
+	}
+
+	async getJourneyLog(limit = 20, offset = 0) {
+		const { data } = await axios.get(`${this.baseURL}/journey/log`, {
+			params: { limit, offset },
+		})
+		return data
+	}
+
 	// ─── Settings ────────────────────────────────────────────
 
 	async getSettings() {
