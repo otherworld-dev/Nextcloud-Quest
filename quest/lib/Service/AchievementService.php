@@ -27,9 +27,15 @@ class AchievementService {
     /** @var QuestMapper */
     private $questMapper;
     
-    // Achievement definitions with categories and rarity levels
-    private const ACHIEVEMENTS = [
-        // Task Master Category - Common to Legendary
+    /**
+     * Get all achievement definitions from the generated definitions class.
+     */
+    private static function getAchievements(): array {
+        return AchievementDefinitions::getAll();
+    }
+
+    // Legacy constant kept as empty — all definitions now in AchievementDefinitions.php
+    private const ACHIEVEMENTS_LEGACY = [
         'first_task' => [
             'name' => 'First Step',
             'description' => 'Complete your first task',
@@ -874,7 +880,7 @@ class AchievementService {
             'rarity' => 'Mythic',
             'progress_type' => 'special'
         ]
-    ];
+    ]; // End of ACHIEVEMENTS_LEGACY — no longer used
     
     public function __construct(
         AchievementMapper $achievementMapper,
@@ -943,10 +949,14 @@ class AchievementService {
         $unlockedKeys = array_map(fn($a) => $a->getAchievementKey(), $existingAchievements);
 
         // ===== TASK MASTER CATEGORY - All task count milestones =====
-        $taskMilestones = [1 => 'first_task', 10 => 'tasks_10', 50 => 'tasks_50', 100 => 'tasks_100',
-                          250 => 'tasks_250', 500 => 'tasks_500', 1000 => 'tasks_1000', 2500 => 'tasks_2500',
-                          5000 => 'tasks_5000', 10000 => 'tasks_10000', 25000 => 'tasks_25000', 50000 => 'tasks_50000',
-                          1024 => 'binary_master', 1618 => 'golden_ratio'];
+        $taskMilestones = [1 => 'first_task'];
+        foreach ([5,10,15,20,25,30,35,40,45,50,60,75,100,125,150,175,200,250,300,350,400,450,500,
+                  600,700,750,800,900,1000,1250,1500,1750,2000,2500,3000,3500,4000,4500,5000,
+                  7500,10000,15000,20000,25000,30000,40000,50000,100000] as $n) {
+            $taskMilestones[$n] = 'tasks_' . $n;
+        }
+        $taskMilestones[1024] = 'binary_master';
+        $taskMilestones[1618] = 'golden_ratio';
         foreach ($taskMilestones as $milestone => $achievementKey) {
             if ($totalTasks >= $milestone && !in_array($achievementKey, $unlockedKeys)) {
                 $unlockedAchievements[] = $this->unlockAchievement($userId, $achievementKey);
@@ -954,18 +964,20 @@ class AchievementService {
         }
 
         // ===== STREAK KEEPER CATEGORY - All streak milestones =====
-        $streakMilestones = [3 => 'streak_3', 7 => 'streak_7', 14 => 'streak_14', 30 => 'streak_30',
-                            60 => 'streak_60', 100 => 'streak_100', 365 => 'streak_365',
-                            500 => 'streak_500', 1000 => 'streak_1000'];
+        $streakMilestones = [];
+        foreach (range(1, 30) as $n) { $streakMilestones[$n] = 'streak_' . $n; }
+        foreach ([45,60,90,100,120,150,180,200,250,300,365,500,730,1000] as $n) {
+            $streakMilestones[$n] = 'streak_' . $n;
+        }
         foreach ($streakMilestones as $milestone => $achievementKey) {
             if ($currentStreak >= $milestone && !in_array($achievementKey, $unlockedKeys)) {
                 $unlockedAchievements[] = $this->unlockAchievement($userId, $achievementKey);
             }
         }
 
-        // ===== LEVEL CHAMPION CATEGORY - All level milestones =====
-        $levelMilestones = [5 => 'level_5', 10 => 'level_10', 25 => 'level_25', 50 => 'level_50',
-                           75 => 'level_75', 100 => 'level_100', 150 => 'level_150', 200 => 'level_200'];
+        // ===== LEVEL CHAMPION CATEGORY - All level milestones (1-100) =====
+        $levelMilestones = [];
+        for ($i = 1; $i <= 100; $i++) { $levelMilestones[$i] = 'level_' . $i; }
         foreach ($levelMilestones as $milestone => $achievementKey) {
             if ($level >= $milestone && !in_array($achievementKey, $unlockedKeys)) {
                 $unlockedAchievements[] = $this->unlockAchievement($userId, $achievementKey);
@@ -973,10 +985,26 @@ class AchievementService {
         }
 
         // ===== XP LEGENDS CATEGORY =====
-        if ($lifetimeXP === 10000) {
-            $unlockedAchievements[] = $this->unlockAchievement($userId, 'perfect_score');
+        $xpMilestones = [];
+        foreach ([100,250,500,750,1000,1500,2000,2500,3000,4000,5000,7500,10000,15000,20000,
+                  25000,30000,40000,50000,75000,100000,150000,200000,250000,300000,400000,
+                  500000,750000,1000000,2000000,3000000,5000000,7500000,10000000] as $n) {
+            $xpMilestones[$n] = 'xp_' . $n;
         }
-        if ($lifetimeXP >= 1000000) {
+        foreach ($xpMilestones as $milestone => $achievementKey) {
+            if ($lifetimeXP >= $milestone && !in_array($achievementKey, $unlockedKeys)) {
+                $unlockedAchievements[] = $this->unlockAchievement($userId, $achievementKey);
+            }
+        }
+        // Exact XP values
+        $exactXP = [1337,9999,10000,12345,27182,31415,42069,99999,314159];
+        foreach ($exactXP as $n) {
+            $key = $n === 10000 ? 'perfect_score' : 'xp_exact_' . $n;
+            if ($lifetimeXP === $n && !in_array($key, $unlockedKeys)) {
+                $unlockedAchievements[] = $this->unlockAchievement($userId, $key);
+            }
+        }
+        if ($lifetimeXP >= 1000000 && !in_array('xp_millionaire', $unlockedKeys)) {
             $unlockedAchievements[] = $this->unlockAchievement($userId, 'xp_millionaire');
         }
 
@@ -992,6 +1020,11 @@ class AchievementService {
         }
         if ($hour >= 0 && $hour < 1) {
             $unlockedAchievements[] = $this->unlockAchievement($userId, 'midnight_warrior');
+        }
+        // Hour-specific achievements
+        $hourKey = 'hour_' . $hour;
+        if (!in_array($hourKey, $unlockedKeys)) {
+            $unlockedAchievements[] = $this->unlockAchievement($userId, $hourKey);
         }
 
         // ===== WEEKEND WARRIOR =====
@@ -1024,8 +1057,10 @@ class AchievementService {
         $recentHistory = $this->historyMapper->findByDateRange($userId, $oneHourAgo, $completionTime);
         $tasksInLastHour = count($recentHistory);
 
-        $speedMilestones = [3 => 'speed_3_in_hour', 5 => 'speed_5_in_hour', 10 => 'speed_10_in_hour',
-                           15 => 'speed_15_in_hour', 20 => 'speed_20_in_hour'];
+        $speedMilestones = [];
+        foreach ([2,3,4,5,6,7,8,9,10,12,14,15,16,18,20,25,30,35,40,50] as $n) {
+            $speedMilestones[$n] = 'speed_' . $n . '_in_hour';
+        }
         foreach ($speedMilestones as $milestone => $achievementKey) {
             if ($tasksInLastHour >= $milestone) {
                 $unlockedAchievements[] = $this->unlockAchievement($userId, $achievementKey);
@@ -1040,11 +1075,14 @@ class AchievementService {
         $todayHistory = $this->historyMapper->findByDateRange($userId, $startOfDay, $endOfDay);
         $tasksToday = count($todayHistory);
 
-        if ($tasksToday >= 12) {
-            $unlockedAchievements[] = $this->unlockAchievement($userId, 'daily_dozen');
+        $dailyMilestones = [];
+        foreach ([1,2,3,5,8,10,12,15,20,25,30,40,50,75,100] as $n) {
+            $dailyMilestones[$n] = 'daily_' . $n;
         }
-        if ($tasksToday >= 50) {
-            $unlockedAchievements[] = $this->unlockAchievement($userId, 'daily_50');
+        foreach ($dailyMilestones as $milestone => $achievementKey) {
+            if ($tasksToday >= $milestone && !in_array($achievementKey, $unlockedKeys)) {
+                $unlockedAchievements[] = $this->unlockAchievement($userId, $achievementKey);
+            }
         }
 
         // ===== SPECIAL DATE ACHIEVEMENTS =====
@@ -1075,6 +1113,37 @@ class AchievementService {
             $unlockedAchievements[] = $this->unlockAchievement($userId, 'palindrome_day');
         }
 
+        // ===== RARE & SECRET - Exact count achievements =====
+        $fibs = [1,2,3,5,8,13,21,34,55,89,144,233,377,610,987];
+        foreach ($fibs as $n) {
+            $key = 'fib_' . $n;
+            if ($totalTasks === $n && !in_array($key, $unlockedKeys)) {
+                $unlockedAchievements[] = $this->unlockAchievement($userId, $key);
+            }
+        }
+        $primes = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47];
+        foreach ($primes as $n) {
+            $key = 'prime_' . $n;
+            if ($totalTasks === $n && !in_array($key, $unlockedKeys)) {
+                $unlockedAchievements[] = $this->unlockAchievement($userId, $key);
+            }
+        }
+        $pows = [2,4,8,16,32,64,128,256,512,1024];
+        foreach ($pows as $n) {
+            $key = 'pow2_' . $n;
+            if ($totalTasks === $n && !in_array($key, $unlockedKeys)) {
+                $unlockedAchievements[] = $this->unlockAchievement($userId, $key);
+            }
+        }
+        $luckyExact = [7 => 'lucky_7', 42 => 'answer_42', 69 => 'nice_69', 77 => 'lucky_77',
+                       100 => 'century_exact', 500 => 'round_500', 777 => 'lucky_777',
+                       1000 => 'millennium_exact', 7777 => 'lucky_7777'];
+        foreach ($luckyExact as $n => $key) {
+            if ($totalTasks === $n && !in_array($key, $unlockedKeys)) {
+                $unlockedAchievements[] = $this->unlockAchievement($userId, $key);
+            }
+        }
+
         // ===== TIME LORD CATEGORY - Extended streak checks =====
         if ($currentStreak === 90) {
             $unlockedAchievements[] = $this->unlockAchievement($userId, 'quarterly_champion');
@@ -1103,7 +1172,7 @@ class AchievementService {
         }
         
         // Get achievement data
-        $achievementData = self::ACHIEVEMENTS[$achievementKey] ?? null;
+        $achievementData = self::getAchievements()[$achievementKey] ?? null;
         if (!$achievementData) {
             return null;
         }
@@ -1139,7 +1208,7 @@ class AchievementService {
      * @param string $achievementKey
      */
     private function sendAchievementNotification(string $userId, string $achievementKey): void {
-        $achievementData = self::ACHIEVEMENTS[$achievementKey] ?? null;
+        $achievementData = self::getAchievements()[$achievementKey] ?? null;
         if (!$achievementData) {
             return;
         }
@@ -1174,7 +1243,7 @@ class AchievementService {
         $this->logger->info("Unlocked keys: " . json_encode($unlockedKeys));
 
         $achievements = [];
-        foreach (self::ACHIEVEMENTS as $key => $data) {
+        foreach (self::getAchievements() as $key => $data) {
             $isUnlocked = in_array($key, $unlockedKeys);
             $unlockedAt = null;
             
@@ -1311,11 +1380,11 @@ class AchievementService {
      * @return array|null
      */
     public function getAchievementProgress(string $userId, string $achievementKey): ?array {
-        if (!isset(self::ACHIEVEMENTS[$achievementKey])) {
+        if (!isset(self::getAchievements()[$achievementKey])) {
             return null;
         }
 
-        $achievement = self::ACHIEVEMENTS[$achievementKey];
+        $achievement = self::getAchievements()[$achievementKey];
 
         // Only calculate progress for milestone-based achievements
         if ($achievement['progress_type'] !== 'milestone') {
@@ -1337,60 +1406,27 @@ class AchievementService {
             ];
         }
 
-        // Determine current value based on achievement type
-        if (strpos($achievementKey, 'tasks_') === 0 ||
-            $achievementKey === 'binary_master' ||
-            $achievementKey === 'golden_ratio') {
-            // Task count achievements
+        // Determine current value based on achievement key prefix
+        if ($achievementKey === 'first_task' || strpos($achievementKey, 'tasks_') === 0 ||
+            $achievementKey === 'binary_master' || $achievementKey === 'golden_ratio') {
             try {
                 $stats = $this->historyMapper->getCompletionStats($userId);
-                $this->logger->info("Task stats for $userId: " . json_encode($stats));
                 $currentValue = $stats['total_tasks'];
             } catch (\Exception $e) {
-                $this->logger->error("Failed to get task stats for $userId: " . $e->getMessage());
                 $currentValue = 0;
             }
-
         } elseif (strpos($achievementKey, 'streak_') === 0) {
-            // Streak achievements - get current or longest streak
             $currentValue = $quest->getCurrentStreak();
-
         } elseif (strpos($achievementKey, 'level_') === 0) {
-            // Level achievements
             $currentValue = $quest->getLevel();
-
-        } elseif ($achievementKey === 'xp_millionaire') {
-            // XP milestone
+        } elseif (strpos($achievementKey, 'xp_') === 0 || $achievementKey === 'xp_millionaire') {
             $currentValue = $quest->getLifetimeXp();
-
-        } elseif ($achievementKey === 'xp_healer') {
-            // Health healed using XP (would need tracking)
-            $currentValue = 0; // TODO: Implement health healing tracking
-
-        } elseif (in_array($achievementKey, ['priority_perfectionist', 'priority_master_500'])) {
-            // High priority tasks (would need tracking)
-            $currentValue = 0; // TODO: Implement priority task tracking
-
-        } elseif (in_array($achievementKey, ['urgent_expert', 'deadline_destroyer', 'deadline_ninja'])) {
-            // Tasks completed before deadline (would need tracking)
-            $currentValue = 0; // TODO: Implement deadline tracking
-
-        } elseif ($achievementKey === 'early_completer') {
-            // Tasks completed 3+ days early (would need tracking)
-            $currentValue = 0; // TODO: Implement early completion tracking
-
-        } elseif ($achievementKey === 'overdue_recovery') {
-            // Overdue tasks cleared (would need tracking)
-            $currentValue = 0; // TODO: Implement overdue recovery tracking
-
-        } elseif (in_array($achievementKey, ['personal_master', 'work_warrior', 'fitness_fanatic',
-                                             'creative_genius', 'social_butterfly'])) {
-            // Category-specific task counts (would need category tracking)
-            $currentValue = 0; // TODO: Implement category-based task tracking
-
-        } elseif (in_array($achievementKey, ['helper', 'team_player', 'mentor', 'inspiration'])) {
-            // Community achievements (future feature)
-            $currentValue = 0; // TODO: Implement community features
+        } elseif (strpos($achievementKey, 'speed_') === 0) {
+            $currentValue = 0; // Can't calculate retroactively
+        } elseif (strpos($achievementKey, 'daily_') === 0) {
+            $currentValue = 0; // Needs current day context
+        } else {
+            $currentValue = 0; // Unknown or special type
         }
 
         return [
@@ -1425,8 +1461,8 @@ class AchievementService {
         
         foreach ($achievements as $achievement) {
             $key = $achievement->getAchievementKey();
-            if (isset(self::ACHIEVEMENTS[$key])) {
-                $data = self::ACHIEVEMENTS[$key];
+            if (isset(self::getAchievements()[$key])) {
+                $data = self::getAchievements()[$key];
                 $result[] = [
                     'key' => $key,
                     'name' => $data['name'],
@@ -1449,7 +1485,7 @@ class AchievementService {
      * @return array
      */
     public function getAchievementStats(string $userId): array {
-        $totalAchievements = count(self::ACHIEVEMENTS);
+        $totalAchievements = count(self::getAchievements());
         $unlockedCount = count($this->achievementMapper->findAllByUserId($userId));
         
         return [
