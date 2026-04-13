@@ -17,6 +17,12 @@ class ChallengeService {
         ['type' => 'evening_tasks', 'title' => 'Night Shift', 'desc' => 'Complete %d tasks after 6 PM', 'targets' => [2, 3, 5], 'xp' => [30, 50, 80]],
         ['type' => 'any_priority', 'title' => 'Priority Mix', 'desc' => 'Complete tasks of all 3 priorities today', 'targets' => [1], 'xp' => [60]],
         ['type' => 'multi_list', 'title' => 'List Hopper', 'desc' => 'Complete tasks from %d different lists today', 'targets' => [2, 3], 'xp' => [40, 70]],
+        ['type' => 'no_low_priority', 'title' => 'High Standards', 'desc' => 'Complete %d tasks without any low priority', 'targets' => [3, 5], 'xp' => [40, 70]],
+        ['type' => 'first_hour', 'title' => 'Power Hour', 'desc' => 'Complete %d tasks in your first hour of the day', 'targets' => [3, 5], 'xp' => [40, 75]],
+        ['type' => 'all_lists', 'title' => 'List Explorer', 'desc' => 'Complete tasks from %d different lists', 'targets' => [2, 3, 4], 'xp' => [35, 55, 80]],
+        ['type' => 'before_lunch', 'title' => 'Morning Sprint', 'desc' => 'Complete %d tasks before 1 PM', 'targets' => [3, 5, 8], 'xp' => [30, 50, 90]],
+        ['type' => 'after_dinner', 'title' => 'Evening Push', 'desc' => 'Complete %d tasks after 7 PM', 'targets' => [2, 3, 5], 'xp' => [30, 50, 80]],
+        ['type' => 'zero_breaks', 'title' => 'Non-Stop', 'desc' => 'Complete %d tasks with no more than 10 min between each', 'targets' => [3, 5], 'xp' => [50, 90]],
     ];
 
     private const WEEKLY_TEMPLATES = [
@@ -25,6 +31,11 @@ class ChallengeService {
         ['type' => 'daily_minimum', 'title' => 'Consistency', 'desc' => 'Complete at least %d tasks every day for 5 days', 'targets' => [1, 3, 5], 'xp' => [50, 100, 175]],
         ['type' => 'weekend_tasks', 'title' => 'Weekend Warrior', 'desc' => 'Complete %d tasks over the weekend', 'targets' => [5, 10, 15], 'xp' => [50, 100, 150]],
         ['type' => 'total_xp_week', 'title' => 'XP Hunter', 'desc' => 'Earn %d XP this week', 'targets' => [200, 500, 1000], 'xp' => [50, 100, 200]],
+        ['type' => 'perfect_weekdays', 'title' => 'Weekday Warrior', 'desc' => 'Complete tasks every weekday (Mon-Fri)', 'targets' => [5], 'xp' => [150]],
+        ['type' => 'high_priority_week', 'title' => 'Priority Focus', 'desc' => 'Complete %d high priority tasks this week', 'targets' => [5, 10, 20], 'xp' => [75, 150, 250]],
+        ['type' => 'journey_encounters', 'title' => 'Adventurer', 'desc' => 'Trigger %d journey encounters this week', 'targets' => [5, 10], 'xp' => [75, 150]],
+        ['type' => 'craft_items', 'title' => 'Master Smith', 'desc' => 'Craft %d items this week', 'targets' => [1, 3], 'xp' => [100, 200]],
+        ['type' => 'achievement_hunter', 'title' => 'Achievement Hunter', 'desc' => 'Unlock %d achievements this week', 'targets' => [3, 5, 10], 'xp' => [75, 125, 250]],
     ];
 
     public function __construct(IDBConnection $db, LoggerInterface $logger) {

@@ -32,7 +32,9 @@ class AchievementDefinitions {
             self::worldConqueror(),
             self::communitySocial(),
             self::statisticalMarvels(),
-            self::categorySpecialist()
+            self::categorySpecialist(),
+            self::journeyHero(),
+            self::craftingMaster()
         );
         return self::$cache;
     }
@@ -874,6 +876,106 @@ class AchievementDefinitions {
         $a['all_lists_week'] = self::s('All Lists Week', 'Complete tasks from every list in one week', 'Category Specialist', 'Rare');
         $a['list_rotation'] = self::s('List Rotation', 'Complete from a different list each day for 5 days', 'Category Specialist', 'Rare');
         $a['empty_inbox'] = self::s('Empty Inbox', 'Have zero pending tasks across all lists', 'Category Specialist', 'Legendary');
+        return $a;
+    }
+
+    private static function journeyHero(): array {
+        $a = [];
+
+        // First encounter
+        $a['journey_first_encounter'] = self::s('First Encounter', 'Complete your first journey encounter', 'Journey Hero', 'Common', 'default.svg');
+
+        // Battle milestones
+        $battleMilestones = [10 => 'Battle Tested', 25 => 'Seasoned Fighter', 50 => 'War Veteran', 100 => 'Battle Centurion', 250 => 'War Machine', 500 => 'Battle Legend'];
+        foreach ($battleMilestones as $n => $name) {
+            $rarity = $n <= 25 ? 'Common' : ($n <= 100 ? 'Rare' : ($n <= 250 ? 'Epic' : 'Legendary'));
+            $a['journey_battles_' . $n] = self::m($name, "Win $n battles", 'Journey Hero', $rarity, $n);
+        }
+
+        // Treasure milestones
+        $treasureMilestones = [5 => 'Treasure Finder', 10 => 'Treasure Seeker', 25 => 'Treasure Collector', 50 => 'Treasure Hoarder', 100 => 'Treasure Legend'];
+        foreach ($treasureMilestones as $n => $name) {
+            $rarity = $n <= 10 ? 'Common' : ($n <= 25 ? 'Rare' : ($n <= 50 ? 'Epic' : 'Legendary'));
+            $a['journey_treasures_' . $n] = self::m($name, "Find $n treasures", 'Journey Hero', $rarity, $n);
+        }
+
+        // Event milestones
+        $eventMilestones = [5 => 'Event Participant', 10 => 'Event Enthusiast', 25 => 'Event Veteran', 50 => 'Event Master'];
+        foreach ($eventMilestones as $n => $name) {
+            $rarity = $n <= 10 ? 'Common' : ($n <= 25 ? 'Rare' : 'Epic');
+            $a['journey_events_' . $n] = self::m($name, "Complete $n events", 'Journey Hero', $rarity, $n);
+        }
+
+        // Boss milestones
+        $bossMilestones = [1 => 'Boss Slayer', 3 => 'Boss Hunter', 5 => 'Boss Crusher', 9 => 'Boss Annihilator'];
+        foreach ($bossMilestones as $n => $name) {
+            $rarity = $n <= 1 ? 'Rare' : ($n <= 3 ? 'Epic' : ($n <= 5 ? 'Legendary' : 'Mythic'));
+            $a['journey_bosses_' . $n] = self::m($name, "Defeat $n bosses", 'Journey Hero', $rarity, $n);
+        }
+
+        // Mini-boss milestones
+        $miniBossMilestones = [1 => 'Mini-Boss Down', 5 => 'Mini-Boss Hunter', 10 => 'Mini-Boss Slayer', 25 => 'Mini-Boss Nemesis'];
+        foreach ($miniBossMilestones as $n => $name) {
+            $rarity = $n <= 1 ? 'Common' : ($n <= 5 ? 'Rare' : ($n <= 10 ? 'Epic' : 'Legendary'));
+            $a['journey_mini_bosses_' . $n] = self::m($name, "Defeat $n mini-bosses", 'Journey Hero', $rarity, $n);
+        }
+
+        // Prestige milestones
+        $prestigeMilestones = [1 => 'First Prestige', 2 => 'Double Prestige', 3 => 'Triple Prestige', 5 => 'Prestige Master'];
+        foreach ($prestigeMilestones as $n => $name) {
+            $rarity = $n <= 1 ? 'Rare' : ($n <= 2 ? 'Epic' : 'Legendary');
+            $a['journey_prestige_' . $n] = self::m($name, "Reach prestige $n", 'Journey Hero', $rarity, $n);
+        }
+
+        // Win streak specials
+        $winStreaks = [3 => 'Hat Trick Wins', 5 => 'Winning Streak', 10 => 'Unstoppable Force'];
+        foreach ($winStreaks as $n => $name) {
+            $rarity = $n <= 3 ? 'Rare' : ($n <= 5 ? 'Epic' : 'Legendary');
+            $a['journey_win_streak_' . $n] = self::s($name, "Win $n battles in a row", 'Journey Hero', $rarity);
+        }
+
+        // Special achievements
+        $a['journey_no_damage'] = self::s('Untouchable', 'Complete an encounter without taking damage', 'Journey Hero', 'Epic');
+        $a['journey_all_ages'] = self::s('Timeless Warrior', 'Encounter enemies from all 9 ages', 'Journey Hero', 'Legendary');
+
+        return $a;
+    }
+
+    private static function craftingMaster(): array {
+        $a = [];
+
+        // First craft
+        $a['craft_first'] = self::s('Forge First', 'Craft your first item', 'Crafting Master', 'Common', 'default.svg');
+
+        // Craft count milestones
+        $craftMilestones = [5 => 'Apprentice Smith', 10 => 'Journeyman Smith', 25 => 'Expert Smith', 50 => 'Master Smith', 100 => 'Legendary Smith'];
+        foreach ($craftMilestones as $n => $name) {
+            $rarity = $n <= 5 ? 'Common' : ($n <= 10 ? 'Rare' : ($n <= 25 ? 'Epic' : 'Legendary'));
+            $a['craft_' . $n] = self::m($name, "Craft $n items", 'Crafting Master', $rarity, $n);
+        }
+
+        // Rarity crafting specials
+        $a['craft_rare'] = self::s('Rare Find', 'Craft a rare item', 'Crafting Master', 'Rare');
+        $a['craft_epic'] = self::s('Epic Creation', 'Craft an epic item', 'Crafting Master', 'Epic');
+        $a['craft_legendary'] = self::s('Legendary Forge', 'Craft a legendary item', 'Crafting Master', 'Legendary');
+
+        // All slots
+        $a['craft_all_slots'] = self::s('Full Set', 'Craft items for all 4 equipment slots', 'Crafting Master', 'Epic');
+
+        // Age-specific crafting
+        $ages = [
+            'stone' => 'Stone Age', 'bronze' => 'Bronze Age', 'iron' => 'Iron Age',
+            'medieval' => 'Medieval', 'renaissance' => 'Renaissance', 'industrial' => 'Industrial',
+            'modern' => 'Modern', 'digital' => 'Digital', 'space' => 'Space Age',
+        ];
+        foreach ($ages as $key => $label) {
+            $a['craft_age_' . $key] = self::s("$label Crafter", "Craft an item from the $label", 'Crafting Master', 'Rare');
+        }
+
+        // Collection specials
+        $a['craft_collector'] = self::s('Item Collector', 'Own 50% of all craftable items', 'Crafting Master', 'Legendary');
+        $a['craft_hoarder'] = self::s('Item Hoarder', 'Own 10 copies of any single item', 'Crafting Master', 'Epic');
+
         return $a;
     }
 }
