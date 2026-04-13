@@ -236,8 +236,7 @@
 						<div v-else class="item-icon">📦</div>
 						<span class="item-power">+{{ rarityPower(item) }}</span>
 						<span v-if="(item.quantity || 0) > 1" class="item-qty">x{{ item.quantity }}</span>
-						<div class="item-name">{{ item.name }}</div>
-						<div class="item-slot-label">{{ item.slot }}</div>
+						<div class="item-name">{{ item.item_name || item.name }}</div>
 						<div class="item-footer">
 							<button
 								v-if="item.is_unlocked || item.unlocked && !isEquipped(item)"
