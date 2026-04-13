@@ -133,7 +133,7 @@ export default {
 }
 
 .notification-toast.level_up {
-	border-left-color: var(--color-success, #46ba61);
+	border-left-color: var(--quest-success);
 }
 
 .notification-toast.xp_gain {
@@ -147,11 +147,11 @@ export default {
 
 .notification-toast.journey_win,
 .notification-toast.journey_boss {
-	border-left-color: var(--color-success, #46ba61);
+	border-left-color: var(--quest-success);
 }
 
 .notification-toast.journey_lose {
-	border-left-color: var(--color-error, #e9322d);
+	border-left-color: var(--quest-error);
 }
 
 .notification-toast.journey_treasure {
@@ -208,7 +208,7 @@ export default {
 }
 
 .notification-toast.level_up .notification-progress {
-	background: var(--color-success, #46ba61);
+	background: var(--quest-success);
 	animation-duration: 4s;
 }
 

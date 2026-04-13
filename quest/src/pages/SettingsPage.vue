@@ -359,7 +359,7 @@ export default {
 }
 
 .settings-section.danger {
-	border-color: var(--color-error, #e9322d);
+	border-color: var(--quest-error);
 }
 
 .section-head {
@@ -421,12 +421,12 @@ export default {
 }
 
 .btn.danger {
-	color: var(--color-error, #e9322d);
-	border-color: var(--color-error, #e9322d);
+	color: var(--quest-error);
+	border-color: var(--quest-error);
 }
 
 .btn.danger:hover {
-	background: var(--color-error, #e9322d);
+	background: var(--quest-error);
 	color: white;
 }
 

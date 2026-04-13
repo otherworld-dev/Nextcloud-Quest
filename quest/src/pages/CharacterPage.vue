@@ -632,7 +632,7 @@ export default {
 .item-power {
 	font-size: 10px;
 	font-weight: 700;
-	color: var(--color-success, #46ba61);
+	color: var(--quest-success);
 	position: absolute;
 	top: 6px;
 	left: 6px;
@@ -901,7 +901,7 @@ export default {
 }
 
 .slot-action:hover {
-	color: var(--color-error, #e9322d);
+	color: var(--quest-error);
 	background: var(--color-background-dark);
 }
 
@@ -990,7 +990,7 @@ export default {
 }
 
 .item-card.equipped {
-	border-color: var(--color-success);
+	border-color: var(--quest-success);
 	background: rgba(70, 186, 97, 0.05);
 }
 
@@ -1127,7 +1127,7 @@ export default {
 }
 
 .item-status.equipped {
-	color: var(--color-success);
+	color: var(--quest-success);
 }
 
 .item-status.locked {

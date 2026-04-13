@@ -54,6 +54,10 @@
 						<option value="medium">Medium</option>
 						<option value="low">Low</option>
 					</select>
+					<label class="hide-completed-toggle">
+						<input type="checkbox" v-model="hideCompleted">
+						<span>Hide completed</span>
+					</label>
 				</div>
 
 				<div v-if="loading.tasks" class="loading-state">
@@ -213,6 +217,7 @@ export default {
 		return {
 			searchQuery: '',
 			priorityFilter: 'all',
+			hideCompleted: true,
 			addingToList: null,
 			newTaskTitle: '',
 			newTaskPriority: 'medium',
@@ -336,6 +341,9 @@ export default {
 
 		getFilteredTasks(list) {
 			let tasks = list.tasks || []
+			if (this.hideCompleted) {
+				tasks = tasks.filter(t => !t.completed && t.completed !== 1)
+			}
 			if (this.searchQuery) {
 				const q = this.searchQuery.toLowerCase()
 				tasks = tasks.filter(t => (t.title || t.summary || '').toLowerCase().includes(q))
@@ -548,6 +556,23 @@ export default {
 	font-size: var(--font-size-small);
 }
 
+.hide-completed-toggle {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: var(--font-size-small);
+	color: var(--color-main-text);
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.hide-completed-toggle input {
+	width: 14px;
+	height: 14px;
+	accent-color: var(--color-primary-element, #0082c9);
+	cursor: pointer;
+}
+
 /* ── Two-column layout ── */
 .dashboard-columns {
 	display: grid;
@@ -610,7 +635,7 @@ export default {
 .challenge-mini:last-child { border-bottom: none; }
 .challenge-mini.completed { opacity: 0.4; }
 .challenge-mini-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.challenge-mini-reward { font-size: 11px; font-weight: 700; color: var(--color-success, #46ba61); }
+.challenge-mini-reward { font-size: 11px; font-weight: 700; color: var(--quest-success); }
 .challenge-mini-title { font-size: 12px; font-weight: 600; color: var(--color-main-text); margin-bottom: 4px; }
 .challenge-mini-footer { font-size: 11px; color: var(--color-text-light); }
 
@@ -693,7 +718,7 @@ export default {
 .challenge-period.weekly { background: #9c27b0; }
 
 .challenge-done {
-	color: var(--color-success, #46ba61);
+	color: var(--quest-success);
 	font-weight: 700;
 	font-size: 16px;
 }
@@ -733,7 +758,7 @@ export default {
 }
 
 .challenge-progress { color: var(--color-text-light); }
-.challenge-reward { color: var(--color-success, #46ba61); font-weight: 600; }
+.challenge-reward { color: var(--quest-success); font-weight: 600; }
 
 /* (old epic/goal sections removed — now in sidebar) */
 
@@ -825,7 +850,7 @@ export default {
 	height: 15px;
 	flex-shrink: 0;
 	cursor: pointer;
-	accent-color: var(--color-success);
+	accent-color: var(--quest-success);
 	margin: 0;
 }
 
@@ -862,24 +887,24 @@ export default {
 }
 
 .priority-high {
-	background: rgba(233, 50, 45, 0.12);
-	color: var(--color-error);
+	background: rgba(255, 100, 100, 0.15);
+	color: #ff6b6b;
 }
 
 .priority-medium {
-	background: rgba(246, 165, 2, 0.12);
-	color: var(--color-warning-contrast, #cc5500);
+	background: rgba(255, 180, 50, 0.15);
+	color: #ffb84d;
 }
 
 .priority-low {
-	background: rgba(0, 130, 201, 0.08);
-	color: var(--color-primary);
+	background: rgba(100, 180, 255, 0.12);
+	color: #64b5f6;
 }
 
 .task-xp {
 	font-size: 11px;
 	font-weight: 700;
-	color: var(--color-success);
+	color: #66cc77;
 	flex-shrink: 0;
 	white-space: nowrap;
 }

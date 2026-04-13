@@ -371,7 +371,7 @@ export default {
 
 .card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
 .card.locked { opacity: 0.5; }
-.card.unlocked { border-color: var(--color-success, #46ba61); }
+.card.unlocked { border-color: var(--quest-success); }
 .card.rare { border-color: #2196f3; }
 .card.epic { border-color: #9c27b0; }
 .card.legendary { border-color: #ff9800; animation: glow 3s ease-in-out infinite alternate; }
@@ -418,7 +418,7 @@ export default {
 .card-status-badge {
 	font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px;
 }
-.card-status-badge.done { background: var(--color-success, #46ba61); color: white; }
+.card-status-badge.done { background: var(--quest-success); color: white; }
 .card-status-badge.todo { background: var(--color-background-dark); color: var(--color-text-light); }
 
 /* ── List view ── */
@@ -468,7 +468,7 @@ export default {
 .list-bar-fill.legendary { background: #ff9800; }
 .list-pct { font-size: 11px; font-weight: 600; color: var(--color-text-light); width: 30px; text-align: right; }
 
-.list-check { color: var(--color-success, #46ba61); font-weight: 700; font-size: 16px; flex-shrink: 0; }
+.list-check { color: var(--quest-success); font-weight: 700; font-size: 16px; flex-shrink: 0; }
 
 /* ── Modal ── */
 .modal-overlay {

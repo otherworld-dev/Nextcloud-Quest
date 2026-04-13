@@ -110,7 +110,7 @@ export default {
 	color: var(--color-text-light); padding: 2px 6px; border-radius: var(--radius-small);
 }
 .action-btn:hover { background: var(--color-background-hover); }
-.action-btn.danger:hover { color: var(--color-error, #e9322d); }
+.action-btn.danger:hover { color: var(--quest-error); }
 
 .epic-desc {
 	font-size: var(--font-size-small);
@@ -147,7 +147,7 @@ export default {
 	margin-bottom: 8px;
 }
 .xp-earned { color: var(--color-text-light); }
-.xp-bonus { color: var(--color-success, #46ba61); font-weight: 600; }
+.xp-bonus { color: var(--quest-success); font-weight: 600; }
 
 .epic-tasks {
 	border-top: 1px solid var(--color-border);
@@ -166,7 +166,7 @@ export default {
 .epic-task.done .task-name { text-decoration: line-through; }
 .task-check { font-size: 14px; }
 .task-name { flex: 1; color: var(--color-main-text); }
-.task-xp { color: var(--color-success, #46ba61); font-weight: 600; font-size: 12px; }
+.task-xp { color: var(--quest-success); font-weight: 600; font-size: 12px; }
 
 .expand-btn {
 	display: block;
@@ -186,7 +186,7 @@ export default {
 	position: absolute;
 	top: 12px;
 	right: 12px;
-	background: var(--color-success, #46ba61);
+	background: var(--quest-success);
 	color: white;
 	font-size: 10px;
 	font-weight: 700;

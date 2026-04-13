@@ -283,8 +283,8 @@ export default {
 
 .encounter-entry.mini_boss { border-left: 3px solid #e91e63; }
 .encounter-entry.boss { border-left: 3px solid #ff9800; }
-.encounter-entry.battle.win { border-left: 3px solid var(--color-success, #46ba61); }
-.encounter-entry.battle.lose { border-left: 3px solid var(--color-error, #e9322d); }
+.encounter-entry.battle.win { border-left: 3px solid var(--quest-success); }
+.encounter-entry.battle.lose { border-left: 3px solid var(--quest-error); }
 .encounter-entry.treasure { border-left: 3px solid #2196f3; }
 .encounter-entry.event { border-left: 3px solid #9c27b0; }
 
@@ -301,8 +301,8 @@ export default {
 	font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 8px;
 	text-transform: uppercase; flex-shrink: 0;
 }
-.encounter-outcome.win { background: rgba(70,186,97,0.15); color: var(--color-success, #46ba61); }
-.encounter-outcome.lose { background: rgba(233,50,45,0.15); color: var(--color-error, #e9322d); }
+.encounter-outcome.win { background: var(--quest-success-bg); color: var(--quest-success); }
+.encounter-outcome.lose { background: var(--quest-error-bg); color: var(--quest-error); }
 .encounter-outcome.found { background: rgba(33,150,243,0.15); color: #2196f3; }
 .encounter-outcome.resolved { background: rgba(156,39,176,0.15); color: #9c27b0; }
 
@@ -312,8 +312,8 @@ export default {
 }
 .reward.xp { color: var(--color-primary-element, #0082c9); }
 .reward.item { color: #2196f3; }
-.reward.hp.heal { color: var(--color-success, #46ba61); }
-.reward.hp.damage { color: var(--color-error, #e9322d); }
+.reward.hp.heal { color: var(--quest-success); }
+.reward.hp.damage { color: var(--quest-error); }
 
 .encounter-time { font-size: 11px; color: var(--color-text-light); flex-shrink: 0; white-space: nowrap; }
 

@@ -170,7 +170,7 @@ export default {
 .timeline-item:hover { background: var(--color-background-hover); }
 
 /* Type borders */
-.timeline-item.task { border-left: 3px solid var(--color-success, #46ba61); }
+.timeline-item.task { border-left: 3px solid var(--quest-success); }
 .timeline-item.journey { border-left: 3px solid #ff9800; }
 .timeline-item.achievement { border-left: 3px solid #9c27b0; }
 .timeline-item.challenge { border-left: 3px solid var(--color-primary-element, #0082c9); }

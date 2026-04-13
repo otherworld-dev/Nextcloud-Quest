@@ -20,6 +20,17 @@
     --grid-gap: 12px;
     --container-padding: 16px;
 
+    /* Quest readable colors — designed for both light and dark themes */
+    --quest-success: #66cc77;
+    --quest-error: #ff6b6b;
+    --quest-warning: #ffb84d;
+    --quest-info: #64b5f6;
+    --quest-xp: #66cc77;
+    --quest-success-bg: rgba(102, 204, 119, 0.15);
+    --quest-error-bg: rgba(255, 107, 107, 0.15);
+    --quest-warning-bg: rgba(255, 184, 77, 0.15);
+    --quest-info-bg: rgba(100, 181, 246, 0.12);
+
     /* Quest-specific color aliases — inherit from Nextcloud theming */
     --color-text-light: var(--color-text-maxcontrast, #767676);
     --color-text-lighter: var(--color-text-maxcontrast, #999999);
