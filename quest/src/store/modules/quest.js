@@ -413,12 +413,12 @@ const actions = {
 				// Handle journey encounter
 				const encounter = result.journey_encounter
 				if (encounter) {
-					const typeIcons = { battle: '\u2694\uFE0F', boss: '\uD83D\uDC80', treasure: '\uD83D\uDCE6', event: '\uD83D\uDCDC' }
+					const typeIcons = { battle: '\u2694\uFE0F', mini_boss: '\uD83D\uDC79', boss: '\uD83D\uDC80', treasure: '\uD83D\uDCE6', event: '\uD83D\uDCDC' }
 					const icon = typeIcons[encounter.encounter_type] || '\u2728'
 					let title = ''
 					let type = 'journey'
 
-					if (encounter.encounter_type === 'battle' || encounter.encounter_type === 'boss') {
+					if (encounter.encounter_type === 'battle' || encounter.encounter_type === 'boss' || encounter.encounter_type === 'mini_boss') {
 						if (encounter.outcome === 'win') {
 							title = `${icon} Defeated ${encounter.encounter_name}!`
 							type = encounter.encounter_type === 'boss' ? 'journey_boss' : 'journey_win'

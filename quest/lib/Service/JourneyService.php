@@ -128,6 +128,9 @@ class JourneyService {
             case 'boss':
                 $result = $this->resolveBoss($userId, $ageKey, $prestige);
                 break;
+            case 'mini_boss':
+                $result = $this->resolveMiniBoss($userId, $ageKey, $prestige);
+                break;
             case 'treasure':
                 $result = $this->resolveTreasure($userId, $ageKey, $prestige);
                 break;
@@ -167,11 +170,16 @@ class JourneyService {
         if ($encountersCompleted > 0 && $encountersCompleted % 20 === 0) {
             return 'boss';
         }
+        // Force mini-boss every 10 encounters (but not on boss encounters)
+        if ($encountersCompleted > 0 && $encountersCompleted % 10 === 0) {
+            return 'mini_boss';
+        }
 
         $roll = mt_rand(1, 100);
-        if ($roll <= 60) return 'battle';
-        if ($roll <= 80) return 'treasure';
-        if ($roll <= 95) return 'event';
+        if ($roll <= 55) return 'battle';
+        if ($roll <= 75) return 'treasure';
+        if ($roll <= 92) return 'event';
+        if ($roll <= 97) return 'mini_boss';
         return 'boss';
     }
 
@@ -250,6 +258,46 @@ class JourneyService {
             'rewards' => $rewards,
             'enemy' => $boss,
             'is_boss' => true,
+            'player_power' => $playerPower,
+            'win_chance' => round($winChance),
+        ];
+    }
+
+    private function resolveMiniBoss(string $userId, string $ageKey, int $prestige): array {
+        $miniBoss = $this->themeService->getMiniBoss($ageKey);
+        $bossHealth = (int)($miniBoss['health'] * (1 + min($prestige, 10) * 0.5));
+
+        $playerPower = $this->calculatePlayerPower($userId);
+        $winChance = min(85, max(25, ($playerPower / ($playerPower + $bossHealth)) * 100));
+        $won = mt_rand(1, 100) <= $winChance;
+
+        $rewards = [];
+        if ($won) {
+            $rewards['xp'] = $miniBoss['xp'] ?? 60;
+            $this->awardXP($userId, $rewards['xp']);
+            $this->updateJourneyStat($userId, 'battles_won');
+
+            // Good chance of loot
+            $loot = $this->rollLootDrop($ageKey, $prestige, mt_rand(1, 100) <= 60);
+            if ($loot) {
+                $rewards['item_key'] = $loot['item_key'];
+                $rewards['item_name'] = $loot['item_name'];
+                $rewards['item_rarity'] = $loot['item_rarity'];
+                $this->unlockItem($userId, $loot['item_key']);
+            }
+        } else {
+            $penalty = mt_rand(12, 25);
+            $rewards['health_change'] = -$penalty;
+            $this->applyHealthPenalty($userId, $penalty);
+            $this->updateJourneyStat($userId, 'battles_lost');
+        }
+
+        return [
+            'encounter_name' => $miniBoss['name'],
+            'outcome' => $won ? 'win' : 'lose',
+            'rewards' => $rewards,
+            'enemy' => $miniBoss,
+            'is_mini_boss' => true,
             'player_power' => $playerPower,
             'win_chance' => round($winChance),
         ];

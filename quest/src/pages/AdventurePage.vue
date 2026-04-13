@@ -148,7 +148,7 @@ export default {
 		...mapActions('quest', ['loadJourney', 'loadJourneyLog']),
 
 		typeIcon(type) {
-			const map = { battle: '\u2694\uFE0F', boss: '\uD83D\uDC80', treasure: '\uD83D\uDCE6', event: '\uD83D\uDCDC' }
+			const map = { battle: '\u2694\uFE0F', mini_boss: '\uD83D\uDC79', boss: '\uD83D\uDC80', treasure: '\uD83D\uDCE6', event: '\uD83D\uDCDC' }
 			return map[type] || '\u2728'
 		},
 
@@ -270,6 +270,7 @@ export default {
 }
 .encounter-entry:hover { background: var(--color-background-hover); }
 
+.encounter-entry.mini_boss { border-left: 3px solid #e91e63; }
 .encounter-entry.boss { border-left: 3px solid #ff9800; }
 .encounter-entry.battle.win { border-left: 3px solid var(--color-success, #46ba61); }
 .encounter-entry.battle.lose { border-left: 3px solid var(--color-error, #e9322d); }

@@ -73,6 +73,7 @@ export default {
 				level_up: soundLevelUp,
 				achievement: soundAchievement,
 				journey_win: soundBattleWin,
+				journey_mini_boss: soundBattleWin,
 				journey_boss: soundBossDefeat,
 				journey_lose: soundBattleLose,
 				journey_treasure: soundTreasure,
