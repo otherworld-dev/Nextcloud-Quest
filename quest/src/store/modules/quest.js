@@ -425,6 +425,28 @@ const actions = {
 					if (encounter.rewards?.health_change) rewardParts.push(`${encounter.rewards.health_change} HP`)
 
 					commit('pushNotification', { type, title, message: rewardParts.join(' | ') || encounter.age_name })
+
+					// Apply health/XP changes from encounter to stats
+					if (encounter.rewards?.health_change) {
+						const currentHealth = state.stats.health.current_health + encounter.rewards.health_change
+						const maxHealth = state.stats.health.max_health
+						commit('setStats', {
+							health: {
+								current_health: Math.max(0, Math.min(maxHealth, currentHealth)),
+								max_health: maxHealth,
+								percentage: Math.max(0, Math.min(100, Math.round((Math.max(0, currentHealth) / maxHealth) * 100))),
+							},
+						})
+					}
+					if (encounter.rewards?.xp) {
+						commit('setStats', {
+							level: {
+								...state.stats.level,
+								xp: (state.stats.level.xp || 0) + encounter.rewards.xp,
+								lifetime_xp: (state.stats.level.lifetime_xp || 0) + encounter.rewards.xp,
+							},
+						})
+					}
 				}
 
 				// Update task counts from response

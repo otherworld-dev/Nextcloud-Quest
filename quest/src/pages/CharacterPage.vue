@@ -197,7 +197,7 @@
 						:key="item.key"
 						class="item-card"
 						:class="[
-							item.unlocked ? 'unlocked' : 'locked',
+							item.is_unlocked || item.unlocked ? 'unlocked' : 'locked',
 							isEquipped(item) ? 'equipped' : '',
 							item.rarity
 						]"
@@ -211,7 +211,7 @@
 						<div class="item-slot-label">{{ item.slot }}</div>
 						<div class="item-footer">
 							<button
-								v-if="item.unlocked && !isEquipped(item)"
+								v-if="item.is_unlocked || item.unlocked && !isEquipped(item)"
 								class="item-btn equip"
 								@click="handleEquip(item.key)"
 							>
@@ -320,8 +320,8 @@ export default {
 
 		filteredItems() {
 			let items = this.allItems
-			if (this.itemFilter === 'unlocked') items = items.filter(i => i.unlocked)
-			if (this.itemFilter === 'locked') items = items.filter(i => !i.unlocked)
+			if (this.itemFilter === 'unlocked') items = items.filter(i => i.is_unlocked || i.unlocked)
+			if (this.itemFilter === 'locked') items = items.filter(i => !(i.is_unlocked || i.unlocked))
 			if (this.slotFilter !== 'all') items = items.filter(i => i.slot === this.slotFilter)
 			return items
 		},
