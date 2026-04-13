@@ -91,6 +91,9 @@
 		</nav>
 
 		<div v-if="!collapsed" class="sidebar-footer">
+			<button class="sound-toggle" @click="toggleSound" :title="soundOn ? 'Mute sounds' : 'Enable sounds'">
+				{{ soundOn ? '\uD83D\uDD0A' : '\uD83D\uDD07' }}
+			</button>
 			<div class="app-version">Quest v1.0</div>
 		</div>
 	</aside>
@@ -99,6 +102,7 @@
 <script>
 import { mapState, mapGetters } from 'vuex'
 import { generateFilePath, generateUrl } from '@nextcloud/router'
+import { isSoundEnabled, setSoundEnabled } from '../services/audio'
 import PixelAvatar from './PixelAvatar.vue'
 
 export default {
@@ -113,7 +117,19 @@ export default {
 		},
 	},
 
+	data() {
+		return {
+			soundOn: isSoundEnabled(),
+		}
+	},
+
 	methods: {
+		toggleSound() {
+			this.soundOn = !this.soundOn
+			setSoundEnabled(this.soundOn)
+			localStorage.setItem('quest-sound-enabled', this.soundOn)
+		},
+
 		navigate(item) {
 			this.$store.commit('quest/setActivePage', item.page)
 			window.history.pushState({}, '', item.url)
@@ -404,6 +420,24 @@ export default {
 	padding: 12px 16px;
 	border-top: 1px solid var(--color-border);
 }
+
+.sidebar-footer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}
+
+.sound-toggle {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 16px;
+	padding: 2px;
+	opacity: 0.6;
+	transition: opacity var(--transition-fast);
+}
+.sound-toggle:hover { opacity: 1; }
 
 .app-version {
 	font-size: 11px;

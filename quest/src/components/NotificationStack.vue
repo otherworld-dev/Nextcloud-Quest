@@ -32,6 +32,11 @@
 
 <script>
 import { mapState, mapMutations } from 'vuex'
+import {
+	soundTaskComplete, soundXPGain, soundLevelUp, soundAchievement,
+	soundBattleWin, soundBattleLose, soundTreasure, soundBossDefeat,
+	soundChallengeComplete, soundEpicComplete, soundEvent,
+} from '../services/audio'
 
 export default {
 	name: 'NotificationStack',
@@ -48,6 +53,9 @@ export default {
 				setTimeout(() => {
 					this.dismissNotification(latest.id)
 				}, delay)
+
+				// Play sound effect
+				this.playSound(latest.type)
 			}
 		},
 	},
@@ -57,6 +65,23 @@ export default {
 
 		dismiss(id) {
 			this.dismissNotification(id)
+		},
+
+		playSound(type) {
+			const sounds = {
+				xp_gain: soundXPGain,
+				level_up: soundLevelUp,
+				achievement: soundAchievement,
+				journey_win: soundBattleWin,
+				journey_boss: soundBossDefeat,
+				journey_lose: soundBattleLose,
+				journey_treasure: soundTreasure,
+				journey_event: soundEvent,
+				challenge_complete: soundChallengeComplete,
+				epic_complete: soundEpicComplete,
+			}
+			const fn = sounds[type]
+			if (fn) fn()
 		},
 	},
 }

@@ -287,6 +287,7 @@
 <script>
 import { mapState, mapActions, mapGetters } from 'vuex'
 import { generateFilePath } from '@nextcloud/router'
+import { soundTaskComplete } from '../services/audio'
 import StatCard from '../components/StatCard.vue'
 import WelcomeBanner from '../components/WelcomeBanner.vue'
 
@@ -449,6 +450,7 @@ export default {
 		async handleComplete(task, list) {
 			// Update locally immediately — no flicker
 			this.$set(task, 'completed', 1)
+			soundTaskComplete()
 			try {
 				await this.completeTask({
 					taskId: task.id || task.uid,

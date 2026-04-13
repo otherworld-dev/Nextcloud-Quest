@@ -36,6 +36,13 @@ store.commit('quest/setActivePage', config.active_page || 'dashboard')
 store.dispatch('quest/loadStats')
 store.dispatch('quest/loadAvatar')
 
+// Restore sound preference
+import { setSoundEnabled } from './services/audio'
+const soundPref = localStorage.getItem('quest-sound-enabled')
+if (soundPref !== null) {
+	setSoundEnabled(soundPref !== 'false')
+}
+
 /**
  * Override Nextcloud's #content layout.
  * NC uses position:fixed, constrained width, overflow:clip, and border-radius
