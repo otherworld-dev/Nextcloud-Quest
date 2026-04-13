@@ -25,6 +25,8 @@
 						:body-type="avatar.body_type"
 						:equipped-weapon="equippedWeapon"
 						:equipped-headgear="equippedHeadgear"
+						:equipped-clothing="equippedClothing"
+						:equipped-accessory="equippedAccessory"
 						:age-key="stats.level.level >= 100 ? 'space' : stats.level.level >= 75 ? 'digital' : stats.level.level >= 60 ? 'modern' : stats.level.level >= 50 ? 'industrial' : stats.level.level >= 40 ? 'renaissance' : stats.level.level >= 30 ? 'medieval' : stats.level.level >= 20 ? 'iron' : stats.level.level >= 10 ? 'bronze' : 'stone'"
 						:size="collapsed ? 48 : 80"
 					/>
@@ -145,6 +147,14 @@ export default {
 
 		equippedHeadgear() {
 			return this.character?.appearance?.headgear || this.character?.equipment?.headgear || null
+		},
+
+		equippedClothing() {
+			return this.character?.appearance?.clothing || this.character?.equipment?.clothing || null
+		},
+
+		equippedAccessory() {
+			return this.character?.appearance?.accessory || this.character?.equipment?.accessory || null
 		},
 		...mapGetters('quest', ['healthPercentage', 'xpPercentage']),
 

@@ -24,8 +24,10 @@
 							:body-type="avatar.body_type"
 							:equipped-weapon="appearance.weapon"
 							:equipped-headgear="appearance.headgear"
+							:equipped-clothing="appearance.clothing"
+							:equipped-accessory="appearance.accessory"
 							:age-key="currentAge.key || 'stone'"
-							:size="128"
+							:size="160"
 						/>
 						<div class="character-badge">Lv. {{ stats.level.level }}</div>
 					</div>
