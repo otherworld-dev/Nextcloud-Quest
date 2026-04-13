@@ -86,6 +86,9 @@ const state = {
 		hide_completed: true,
 	},
 
+	// Challenges
+	challenges: [],
+
 	// Epics
 	epics: [],
 
@@ -197,6 +200,10 @@ const mutations = {
 
 	addEpic(state, epic) {
 		state.epics.unshift(epic)
+	},
+
+	setChallenges(state, challenges) {
+		state.challenges = challenges
 	},
 
 	setAvatar(state, config) {
@@ -449,6 +456,19 @@ const actions = {
 					}
 				}
 
+				// Handle completed challenges
+				const completedChallenges = result.completed_challenges || []
+				completedChallenges.forEach(ch => {
+					commit('pushNotification', {
+						type: 'challenge_complete',
+						title: `\u2705 Challenge Complete: ${ch.title}`,
+						message: `+${ch.xp_reward} XP (${ch.period})`,
+					})
+				})
+				if (completedChallenges.length > 0) {
+					dispatch('loadChallenges')
+				}
+
 				// Update task counts from response
 				if (result.stats) {
 					commit('setStats', {
@@ -511,6 +531,17 @@ const actions = {
 		} catch (error) {
 			console.error('Failed to unequip item:', error)
 			throw error
+		}
+	},
+
+	async loadChallenges({ commit }) {
+		try {
+			const response = await api.getChallenges()
+			if (response.status === 'success') {
+				commit('setChallenges', response.data || [])
+			}
+		} catch (error) {
+			console.error('Failed to load challenges:', error)
 		}
 	},
 

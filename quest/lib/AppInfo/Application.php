@@ -74,6 +74,14 @@ class Application extends App implements IBootstrap {
             );
         });
 
+        // Register challenge service
+        $context->registerService(\OCA\NextcloudQuest\Service\ChallengeService::class, function($c) {
+            return new \OCA\NextcloudQuest\Service\ChallengeService(
+                $c->get(\OCP\IDBConnection::class),
+                $c->get(\Psr\Log\LoggerInterface::class)
+            );
+        });
+
         // Register journey service
         $context->registerService(\OCA\NextcloudQuest\Service\JourneyService::class, function($c) {
             return new \OCA\NextcloudQuest\Service\JourneyService(

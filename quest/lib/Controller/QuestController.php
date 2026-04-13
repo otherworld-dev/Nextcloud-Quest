@@ -763,6 +763,18 @@ class QuestController extends Controller {
             }
             $responseData['journey_encounter'] = $journeyEncounter;
 
+            // Challenge progress check
+            $completedChallenges = [];
+            try {
+                $challengeService = \OC::$server->get(\OCA\NextcloudQuest\Service\ChallengeService::class);
+                $hour = (int)(new \DateTime())->format('H');
+                $priority = $input['priority'] ?? 'medium';
+                $completedChallenges = $challengeService->onTaskCompleted($userId, $priority, $hour);
+            } catch (\Throwable $e) {
+                error_log('Quest: Challenge check failed (non-fatal): ' . $e->getMessage());
+            }
+            $responseData['completed_challenges'] = $completedChallenges;
+
             return new JSONResponse([
                 'status' => 'success',
                 'message' => 'Quest completed successfully!',

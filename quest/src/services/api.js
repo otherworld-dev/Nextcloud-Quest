@@ -187,6 +187,13 @@ class QuestAPI {
 		return data
 	}
 
+	// ─── Challenges ──────────────────────────────────────────
+
+	async getChallenges() {
+		const { data } = await axios.get(`${this.baseURL}/challenges`)
+		return data
+	}
+
 	// ─── Journey ─────────────────────────────────────────────
 
 	async getJourneyStatus() {

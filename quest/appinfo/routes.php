@@ -90,6 +90,9 @@ return [
         ['name' => 'adventureWorld#completeBoss', 'url' => '/api/adventure/complete-boss/{worldNumber}', 'verb' => 'POST'],
         ['name' => 'adventureWorld#getProgress', 'url' => '/api/adventure-old/progress', 'verb' => 'GET'],
 
+        // Challenge endpoints
+        ['name' => 'challenge#getChallenges', 'url' => '/api/challenges', 'verb' => 'GET'],
+
         // Journey system API routes
         ['name' => 'journey#getStatus', 'url' => '/api/journey/status', 'verb' => 'GET'],
         ['name' => 'journey#getLog', 'url' => '/api/journey/log', 'verb' => 'GET'],

@@ -19,6 +19,35 @@
 			<StatCard :icon="icons.achievements" label="Achievements" :value="achievementSummary" :subtitle="achievementSubtitle" />
 		</section>
 
+		<!-- Challenges -->
+		<section v-if="challenges.length > 0" class="content-section">
+			<div class="section-header">
+				<h2 class="section-title">Challenges</h2>
+			</div>
+			<div class="challenges-grid">
+				<div
+					v-for="ch in challenges"
+					:key="ch.id"
+					class="challenge-card"
+					:class="{ completed: ch.is_completed, daily: ch.period === 'daily', weekly: ch.period === 'weekly' }"
+				>
+					<div class="challenge-top">
+						<span class="challenge-period" :class="ch.period">{{ ch.period }}</span>
+						<span v-if="ch.is_completed" class="challenge-done">✓</span>
+					</div>
+					<div class="challenge-title">{{ ch.title }}</div>
+					<div class="challenge-desc">{{ ch.description }}</div>
+					<div class="challenge-bar">
+						<div class="challenge-fill" :style="{ width: ch.percentage + '%' }" />
+					</div>
+					<div class="challenge-footer">
+						<span class="challenge-progress">{{ ch.progress }}/{{ ch.target }}</span>
+						<span class="challenge-reward">+{{ ch.xp_reward }} XP</span>
+					</div>
+				</div>
+			</div>
+		</section>
+
 		<!-- Active Epics -->
 		<section v-if="activeEpics.length > 0" class="content-section">
 			<div class="section-header">
@@ -286,7 +315,7 @@ export default {
 	},
 
 	computed: {
-		...mapState('quest', ['stats', 'taskLists', 'achievements', 'epics', 'loading']),
+		...mapState('quest', ['stats', 'taskLists', 'achievements', 'epics', 'challenges', 'loading']),
 		...mapGetters('quest', ['unlockedAchievements', 'activeEpics']),
 
 		achievementSummary() {
@@ -336,10 +365,11 @@ export default {
 		this.loadTasks()
 		this.loadAchievements()
 		this.loadEpics()
+		this.loadChallenges()
 	},
 
 	methods: {
-		...mapActions('quest', ['loadTaskLists', 'loadAchievements', 'loadEpics', 'completeTask', 'createTask']),
+		...mapActions('quest', ['loadTaskLists', 'loadAchievements', 'loadEpics', 'loadChallenges', 'completeTask', 'createTask']),
 
 		navigateToQuests() {
 			this.$store.commit('quest/setActivePage', 'quests')
@@ -594,6 +624,85 @@ export default {
 	color: var(--color-main-text);
 	font-size: var(--font-size-small);
 }
+
+/* ── Challenges ── */
+.challenges-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	gap: 12px;
+}
+
+.challenge-card {
+	background: var(--color-main-background);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-large);
+	padding: 14px;
+	transition: box-shadow var(--transition-fast);
+}
+
+.challenge-card:hover { box-shadow: var(--shadow-md); }
+.challenge-card.completed { opacity: 0.5; }
+
+.challenge-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 8px;
+}
+
+.challenge-period {
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	padding: 2px 8px;
+	border-radius: 8px;
+	color: white;
+}
+.challenge-period.daily { background: var(--color-primary-element, #0082c9); }
+.challenge-period.weekly { background: #9c27b0; }
+
+.challenge-done {
+	color: var(--color-success, #46ba61);
+	font-weight: 700;
+	font-size: 16px;
+}
+
+.challenge-title {
+	font-size: var(--font-size-small);
+	font-weight: 600;
+	color: var(--color-main-text);
+	margin-bottom: 2px;
+}
+
+.challenge-desc {
+	font-size: 12px;
+	color: var(--color-text-light);
+	margin-bottom: 10px;
+}
+
+.challenge-bar {
+	height: 4px;
+	background: var(--color-background-dark);
+	border-radius: 2px;
+	overflow: hidden;
+	margin-bottom: 6px;
+}
+
+.challenge-fill {
+	height: 100%;
+	border-radius: 2px;
+	background: var(--color-primary-element, #0082c9);
+	transition: width var(--transition-slow);
+}
+
+.challenge-footer {
+	display: flex;
+	justify-content: space-between;
+	font-size: 11px;
+}
+
+.challenge-progress { color: var(--color-text-light); }
+.challenge-reward { color: var(--color-success, #46ba61); font-weight: 600; }
 
 /* ── Active Epics ── */
 .epics-row {

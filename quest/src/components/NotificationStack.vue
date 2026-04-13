@@ -13,6 +13,7 @@
 					<span v-else-if="notif.type === 'level_up'">🎉</span>
 					<span v-else-if="notif.type === 'xp_gain'">✨</span>
 					<span v-else-if="notif.type === 'epic_complete'">🏆</span>
+					<span v-else-if="notif.type === 'challenge_complete'">✅</span>
 					<span v-else-if="notif.type === 'journey_win' || notif.type === 'journey_boss'">⚔️</span>
 					<span v-else-if="notif.type === 'journey_lose'">💀</span>
 					<span v-else-if="notif.type === 'journey_treasure'">📦</span>
