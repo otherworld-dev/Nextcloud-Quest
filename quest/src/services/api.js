@@ -109,6 +109,16 @@ class QuestAPI {
 		return data
 	}
 
+	async getAvatarConfig() {
+		const { data } = await axios.get(`${this.baseURL}/character/avatar`)
+		return data
+	}
+
+	async updateAvatarConfig(config) {
+		const { data } = await axios.put(`${this.baseURL}/character/avatar`, config)
+		return data
+	}
+
 	async equipItem(itemKey) {
 		const { data } = await axios.post(`${this.baseURL}/character/equip/${itemKey}`)
 		return data

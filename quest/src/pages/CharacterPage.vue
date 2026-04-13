@@ -17,11 +17,16 @@
 				<!-- Character card -->
 				<div class="character-card">
 					<div class="character-visual">
-						<div class="avatar-ring" :style="{ '--age-color': ageColor }">
-							<div class="avatar-inner">
-								<span class="avatar-initials">{{ initials }}</span>
-							</div>
-						</div>
+						<PixelAvatar
+							:skin-tone="avatar.skin_tone"
+							:hair-style="avatar.hair_style"
+							:hair-color="avatar.hair_color"
+							:body-type="avatar.body_type"
+							:equipped-weapon="appearance.weapon"
+							:equipped-headgear="appearance.headgear"
+							:age-key="currentAge.key || 'stone'"
+							:size="128"
+						/>
 						<div class="character-badge">Lv. {{ stats.level.level }}</div>
 					</div>
 					<div class="character-details">
@@ -31,7 +36,67 @@
 							<span class="age-icon">{{ currentAge.icon || '\uD83E\uDEA8' }}</span>
 							<span>{{ currentAge.name || 'Stone Age' }}</span>
 						</div>
-						<p class="age-description">{{ currentAge.description || '' }}</p>
+						<button class="btn-customize" @click="showCustomizer = !showCustomizer">
+							{{ showCustomizer ? 'Close' : 'Customize Appearance' }}
+						</button>
+					</div>
+
+					<!-- Customizer -->
+					<div v-if="showCustomizer" class="customizer">
+						<div class="cust-row">
+							<span class="cust-label">Skin Tone</span>
+							<div class="cust-options">
+								<button
+									v-for="(color, key) in skinTones"
+									:key="key"
+									class="color-opt"
+									:class="{ selected: avatarLocal.skin_tone === key }"
+									:style="{ background: color }"
+									@click="setAvatar('skin_tone', key)"
+								/>
+							</div>
+						</div>
+						<div class="cust-row">
+							<span class="cust-label">Hair Style</span>
+							<div class="cust-options">
+								<button
+									v-for="style in hairStyles"
+									:key="style"
+									class="text-opt"
+									:class="{ selected: avatarLocal.hair_style === style }"
+									@click="setAvatar('hair_style', style)"
+								>{{ style }}</button>
+							</div>
+						</div>
+						<div class="cust-row">
+							<span class="cust-label">Hair Color</span>
+							<div class="cust-options">
+								<button
+									v-for="(color, key) in hairColors"
+									:key="key"
+									class="color-opt"
+									:class="{ selected: avatarLocal.hair_color === key }"
+									:style="{ background: color }"
+									@click="setAvatar('hair_color', key)"
+								/>
+							</div>
+						</div>
+						<div class="cust-row">
+							<span class="cust-label">Body Type</span>
+							<div class="cust-options">
+								<button
+									class="text-opt"
+									:class="{ selected: avatarLocal.body_type === 'default' }"
+									@click="setAvatar('body_type', 'default')"
+								>Default</button>
+								<button
+									class="text-opt"
+									:class="{ selected: avatarLocal.body_type === 'broad' }"
+									@click="setAvatar('body_type', 'broad')"
+								>Broad</button>
+							</div>
+						</div>
+						<button class="btn-save" @click="saveAvatar">Save Appearance</button>
 					</div>
 				</div>
 
@@ -170,14 +235,33 @@
 
 <script>
 import { mapState, mapActions } from 'vuex'
+import PixelAvatar from '../components/PixelAvatar.vue'
 
 export default {
 	name: 'CharacterPage',
+	components: { PixelAvatar },
 
 	data() {
 		return {
 			itemFilter: 'all',
 			slotFilter: 'all',
+			showCustomizer: false,
+			avatarLocal: {
+				skin_tone: '3',
+				hair_style: 'short',
+				hair_color: 'brown',
+				body_type: 'default',
+			},
+			skinTones: {
+				'1': '#fde7c8', '2': '#f5d0a9', '3': '#e8b88a',
+				'4': '#c68c53', '5': '#8d5524', '6': '#4a2c0a',
+			},
+			hairColors: {
+				black: '#1a1a1a', brown: '#6b3a2a', blonde: '#d4a843',
+				red: '#b03a2e', gray: '#7f8c8d', white: '#ecf0f1',
+				blue: '#2980b9', green: '#27ae60',
+			},
+			hairStyles: ['short', 'long', 'mohawk', 'bald', 'ponytail', 'curly', 'spiky', 'braided'],
 			equipmentSlots: [
 				{ key: 'clothing', icon: '\uD83D\uDC55', label: 'Clothing' },
 				{ key: 'weapon', icon: '\u2694\uFE0F', label: 'Weapon' },
@@ -193,7 +277,7 @@ export default {
 	},
 
 	computed: {
-		...mapState('quest', ['stats', 'user', 'character', 'loading']),
+		...mapState('quest', ['stats', 'user', 'character', 'avatar', 'loading']),
 
 		initials() {
 			const name = this.user.displayName || 'A'
@@ -243,12 +327,40 @@ export default {
 		},
 	},
 
+	watch: {
+		avatar: {
+			handler(val) {
+				if (val) {
+					this.avatarLocal = { ...this.avatarLocal, ...val }
+				}
+			},
+			immediate: true,
+			deep: true,
+		},
+	},
+
 	mounted() {
 		this.loadCharacter()
+		this.loadAvatar()
 	},
 
 	methods: {
-		...mapActions('quest', ['loadCharacter', 'equipItem', 'unequipItem']),
+		...mapActions('quest', ['loadCharacter', 'equipItem', 'unequipItem', 'loadAvatar', 'updateAvatar']),
+
+		setAvatar(key, value) {
+			this.$set(this.avatarLocal, key, value)
+			// Live preview — update store without saving to backend
+			this.$store.commit('quest/setAvatar', { ...this.avatarLocal })
+		},
+
+		async saveAvatar() {
+			try {
+				await this.updateAvatar(this.avatarLocal)
+				this.showCustomizer = false
+			} catch (e) {
+				console.error('Failed to save avatar:', e)
+			}
+		},
 
 		getEquippedName(slot) {
 			const eq = this.appearance
@@ -392,12 +504,85 @@ export default {
 	font-size: 20px;
 }
 
-.age-description {
+.btn-customize {
+	margin-top: 8px;
+	padding: 6px 14px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-medium);
+	background: var(--color-main-background);
+	color: var(--color-main-text);
+	cursor: pointer;
 	font-size: var(--font-size-small);
-	color: var(--color-text-light);
-	line-height: 1.4;
-	margin: 0;
 }
+.btn-customize:hover { background: var(--color-background-hover); }
+
+.customizer {
+	width: 100%;
+	margin-top: 16px;
+	padding-top: 16px;
+	border-top: 1px solid var(--color-border);
+	text-align: left;
+}
+
+.cust-row {
+	margin-bottom: 12px;
+}
+
+.cust-label {
+	display: block;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--color-text-light);
+	margin-bottom: 6px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.cust-options {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+
+.color-opt {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	border: 2px solid transparent;
+	cursor: pointer;
+	transition: border-color var(--transition-fast);
+}
+.color-opt.selected { border-color: var(--color-main-text); }
+.color-opt:hover { border-color: var(--color-text-light); }
+
+.text-opt {
+	padding: 4px 10px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-small);
+	background: var(--color-main-background);
+	color: var(--color-main-text);
+	cursor: pointer;
+	font-size: 12px;
+	text-transform: capitalize;
+}
+.text-opt.selected {
+	background: var(--color-primary-element, #0082c9);
+	color: white;
+	border-color: transparent;
+}
+
+.btn-save {
+	margin-top: 8px;
+	padding: 8px 20px;
+	background: var(--color-primary-element, #0082c9);
+	color: white;
+	border: none;
+	border-radius: var(--radius-medium);
+	cursor: pointer;
+	font-size: var(--font-size-small);
+	font-weight: 600;
+}
+.btn-save:hover { filter: brightness(1.1); }
 
 /* ── Age progression card ── */
 .age-card {

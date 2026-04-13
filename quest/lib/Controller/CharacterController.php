@@ -624,4 +624,74 @@ class CharacterController extends Controller {
             ], 500);
         }
     }
+
+    /**
+     * Get avatar configuration
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     * @return JSONResponse
+     */
+    public function getAvatarConfig() {
+        try {
+            $user = $this->userSession->getUser();
+            $userId = $user->getUID();
+
+            $db = \OC::$server->get(\OCP\IDBConnection::class);
+            $qb = $db->getQueryBuilder();
+            $qb->select('character_appearance_data')
+                ->from('ncquest_users')
+                ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
+            $result = $qb->executeQuery();
+            $row = $result->fetchOne();
+            $result->closeCursor();
+
+            $config = $row ? json_decode($row, true) : null;
+            if (!$config) {
+                $config = [
+                    'skin_tone' => '3',
+                    'hair_style' => 'short',
+                    'hair_color' => 'brown',
+                    'body_type' => 'default',
+                ];
+            }
+
+            return new JSONResponse(['status' => 'success', 'data' => $config]);
+        } catch (\Exception $e) {
+            return new JSONResponse(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Update avatar configuration
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     * @return JSONResponse
+     */
+    public function updateAvatarConfig() {
+        try {
+            $user = $this->userSession->getUser();
+            $userId = $user->getUID();
+            $input = json_decode(file_get_contents('php://input'), true) ?? [];
+
+            $config = [
+                'skin_tone' => $input['skin_tone'] ?? '3',
+                'hair_style' => $input['hair_style'] ?? 'short',
+                'hair_color' => $input['hair_color'] ?? 'brown',
+                'body_type' => $input['body_type'] ?? 'default',
+            ];
+
+            $db = \OC::$server->get(\OCP\IDBConnection::class);
+            $qb = $db->getQueryBuilder();
+            $qb->update('ncquest_users')
+                ->set('character_appearance_data', $qb->createNamedParameter(json_encode($config)))
+                ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
+            $qb->executeStatement();
+
+            return new JSONResponse(['status' => 'success', 'data' => $config]);
+        } catch (\Exception $e) {
+            return new JSONResponse(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
 }

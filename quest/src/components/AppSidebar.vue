@@ -18,28 +18,19 @@
 		<div class="character-section">
 			<div class="character-avatar-container">
 				<div class="character-avatar">
-					<div class="avatar-content">
-						<div class="avatar-initials">{{ initials }}</div>
-					</div>
+					<PixelAvatar
+						:skin-tone="avatar.skin_tone"
+						:hair-style="avatar.hair_style"
+						:hair-color="avatar.hair_color"
+						:body-type="avatar.body_type"
+						:equipped-weapon="equippedWeapon"
+						:equipped-headgear="equippedHeadgear"
+						:age-key="stats.level.level >= 100 ? 'space' : stats.level.level >= 75 ? 'digital' : stats.level.level >= 60 ? 'modern' : stats.level.level >= 50 ? 'industrial' : stats.level.level >= 40 ? 'renaissance' : stats.level.level >= 30 ? 'medieval' : stats.level.level >= 20 ? 'iron' : stats.level.level >= 10 ? 'bronze' : 'stone'"
+						:size="collapsed ? 48 : 80"
+					/>
 					<div class="avatar-level-badge">
 						<span>{{ stats.level.level }}</span>
 					</div>
-					<svg class="xp-progress-ring" width="100" height="100">
-						<circle
-							class="xp-ring-bg"
-							cx="50" cy="50" r="44"
-							stroke="currentColor" stroke-width="3"
-							fill="none" opacity="0.2"
-						/>
-						<circle
-							class="xp-ring-progress"
-							cx="50" cy="50" r="44"
-							stroke="currentColor" stroke-width="3"
-							fill="none"
-							:stroke-dasharray="xpCircumference"
-							:stroke-dashoffset="xpOffset"
-						/>
-					</svg>
 				</div>
 			</div>
 
@@ -108,9 +99,12 @@
 <script>
 import { mapState, mapGetters } from 'vuex'
 import { generateFilePath, generateUrl } from '@nextcloud/router'
+import PixelAvatar from './PixelAvatar.vue'
 
 export default {
 	name: 'AppSidebar',
+
+	components: { PixelAvatar },
 
 	props: {
 		collapsed: {
@@ -127,7 +121,15 @@ export default {
 	},
 
 	computed: {
-		...mapState('quest', ['user', 'stats', 'activePage']),
+		...mapState('quest', ['user', 'stats', 'activePage', 'avatar', 'character']),
+
+		equippedWeapon() {
+			return this.character?.appearance?.weapon || this.character?.equipment?.weapon || null
+		},
+
+		equippedHeadgear() {
+			return this.character?.appearance?.headgear || this.character?.equipment?.headgear || null
+		},
 		...mapGetters('quest', ['healthPercentage', 'xpPercentage']),
 
 		logoUrl() {
@@ -260,25 +262,8 @@ export default {
 
 .character-avatar {
 	position: relative;
-	width: 100px;
-	height: 100px;
-}
-
-.avatar-content {
-	position: absolute;
-	inset: 0;
 	display: flex;
-	align-items: center;
 	justify-content: center;
-	border-radius: 50%;
-	background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-	margin: 6px;
-}
-
-.avatar-initials {
-	font-size: 28px;
-	font-weight: 700;
-	color: white;
 }
 
 .avatar-level-badge {
@@ -299,21 +284,6 @@ export default {
 	z-index: 2;
 }
 
-.xp-progress-ring {
-	position: absolute;
-	top: 0;
-	left: 0;
-	transform: rotate(-90deg);
-}
-
-.xp-ring-bg {
-	color: var(--color-border);
-}
-
-.xp-ring-progress {
-	color: var(--color-primary);
-	transition: stroke-dashoffset var(--transition-slow);
-}
 
 .character-name {
 	font-size: var(--font-size-normal);
@@ -469,17 +439,6 @@ export default {
 	right: 0;
 }
 
-.collapsed .xp-progress-ring {
-	width: 48px;
-	height: 48px;
-}
-
-.collapsed .xp-ring-bg,
-.collapsed .xp-ring-progress {
-	cx: 24;
-	cy: 24;
-	r: 20;
-}
 
 .collapsed .nav-link {
 	justify-content: center;

@@ -34,6 +34,7 @@ store.commit('quest/setActivePage', config.active_page || 'dashboard')
 
 // Load initial data
 store.dispatch('quest/loadStats')
+store.dispatch('quest/loadAvatar')
 
 /**
  * Override Nextcloud's #content layout.

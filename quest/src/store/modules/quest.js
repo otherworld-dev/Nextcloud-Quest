@@ -71,6 +71,14 @@ const state = {
 		ages: [],
 	},
 
+	// Avatar config
+	avatar: {
+		skin_tone: '3',
+		hair_style: 'short',
+		hair_color: 'brown',
+		body_type: 'default',
+	},
+
 	// Settings
 	settings: {
 		included_lists: [],
@@ -189,6 +197,10 @@ const mutations = {
 
 	addEpic(state, epic) {
 		state.epics.unshift(epic)
+	},
+
+	setAvatar(state, config) {
+		state.avatar = { ...state.avatar, ...config }
 	},
 
 	setJourney(state, data) {
@@ -463,6 +475,29 @@ const actions = {
 			return response
 		} catch (error) {
 			console.error('Failed to unequip item:', error)
+			throw error
+		}
+	},
+
+	async loadAvatar({ commit }) {
+		try {
+			const response = await api.getAvatarConfig()
+			if (response.status === 'success' && response.data) {
+				commit('setAvatar', response.data)
+			}
+		} catch (error) {
+			console.error('Failed to load avatar:', error)
+		}
+	},
+
+	async updateAvatar({ commit }, config) {
+		try {
+			const response = await api.updateAvatarConfig(config)
+			if (response.status === 'success') {
+				commit('setAvatar', config)
+			}
+		} catch (error) {
+			console.error('Failed to update avatar:', error)
 			throw error
 		}
 	},
