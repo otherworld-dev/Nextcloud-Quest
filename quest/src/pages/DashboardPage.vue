@@ -19,268 +19,168 @@
 			<StatCard :icon="icons.achievements" label="Achievements" :value="achievementSummary" :subtitle="achievementSubtitle" />
 		</section>
 
-		<!-- Challenges -->
-		<section v-if="challenges.length > 0" class="content-section">
-			<div class="section-header">
-				<h2 class="section-title">Challenges</h2>
-			</div>
-			<div class="challenges-grid">
-				<div
-					v-for="ch in challenges"
-					:key="ch.id"
-					class="challenge-card"
-					:class="{ completed: ch.is_completed, daily: ch.period === 'daily', weekly: ch.period === 'weekly' }"
-				>
-					<div class="challenge-top">
-						<span class="challenge-period" :class="ch.period">{{ ch.period }}</span>
-						<span v-if="ch.is_completed" class="challenge-done">✓</span>
-					</div>
-					<div class="challenge-title">{{ ch.title }}</div>
-					<div class="challenge-desc">{{ ch.description }}</div>
-					<div class="challenge-bar">
-						<div class="challenge-fill" :style="{ width: ch.percentage + '%' }" />
-					</div>
-					<div class="challenge-footer">
-						<span class="challenge-progress">{{ ch.progress }}/{{ ch.target }}</span>
-						<span class="challenge-reward">+{{ ch.xp_reward }} XP</span>
+		<!-- Two-column layout: tasks (primary) + sidebar (secondary) -->
+		<div class="dashboard-columns">
+			<!-- Left: Task lists -->
+			<div class="dashboard-main">
+				<div class="section-header">
+					<h2 class="section-title">My Task Lists</h2>
+					<div class="section-controls">
+						<button class="btn btn-secondary" @click="loadTasks" :disabled="loading.tasks">
+							{{ icons.refresh }} Refresh
+						</button>
 					</div>
 				</div>
-			</div>
-		</section>
 
-		<!-- Active Epics -->
-		<section v-if="activeEpics.length > 0" class="content-section">
-			<div class="section-header">
-				<h2 class="section-title">Active Epics</h2>
-				<button class="btn btn-secondary" @click="navigateToQuests">View All</button>
-			</div>
-			<div class="epics-row">
-				<div
-					v-for="epic in activeEpics.slice(0, 4)"
-					:key="epic.id"
-					class="epic-mini"
-					:style="{ '--epic-color': epic.color || '#0082c9' }"
-					@click="navigateToQuests"
-				>
-					<div class="epic-mini-top">
-						<span class="epic-mini-emoji">{{ epic.emoji || '\uD83D\uDCDC' }}</span>
-						<div class="epic-mini-info">
-							<span class="epic-mini-title">{{ epic.title }}</span>
-							<span class="epic-mini-tasks">{{ epic.completed_tasks }}/{{ epic.total_tasks }} tasks</span>
-						</div>
-						<span class="epic-mini-tier" :class="epic.tier">{{ epic.tier }}</span>
+				<div class="filter-bar">
+					<div class="search-box">
+						<input v-model="searchQuery" type="text" class="search-input" placeholder="Search tasks...">
 					</div>
-					<div class="epic-mini-bar">
-						<div class="epic-mini-fill" :style="{ width: (epic.progress_percentage || 0) + '%' }" />
+					<select v-model="priorityFilter" class="filter-select">
+						<option value="all">All Priorities</option>
+						<option value="high">High</option>
+						<option value="medium">Medium</option>
+						<option value="low">Low</option>
+					</select>
+				</div>
+
+				<div v-if="loading.tasks" class="loading-state">
+					<div class="spinner" />
+					<p>Loading task lists...</p>
+				</div>
+
+				<div v-else-if="filteredLists.length === 0" class="empty-state">
+					<div class="empty-state-icon">&#x1F4CB;</div>
+					<div class="empty-state-title">No task lists found</div>
+					<div class="empty-state-text">
+						Quest pulls tasks from Nextcloud's CalDAV calendars with VTODO support.
+						Create a calendar with task support, or install the Tasks app to get started.
 					</div>
+					<button class="btn empty-action" @click="loadTasks">&#x1F504; Try Again</button>
 				</div>
-			</div>
-		</section>
 
-		<!-- Task lists -->
-		<section class="content-section">
-			<div class="section-header">
-				<h2 class="section-title">My Task Lists</h2>
-				<div class="section-controls">
-					<button class="btn btn-secondary" @click="loadTasks" :disabled="loading.tasks">
-						{{ icons.refresh }} Refresh
-					</button>
-				</div>
-			</div>
-
-			<!-- Search & filters -->
-			<div class="filter-bar">
-				<div class="search-box">
-					<input
-						v-model="searchQuery"
-						type="text"
-						class="search-input"
-						placeholder="Search tasks..."
+				<div v-else class="task-lists-grid">
+					<div
+						v-for="list in filteredLists"
+						:key="list.id || list.uri"
+						class="task-list-card"
+						:style="{ '--list-color': list.color || 'var(--color-primary)' }"
 					>
-				</div>
-				<select v-model="priorityFilter" class="filter-select">
-					<option value="all">All Priorities</option>
-					<option value="high">High</option>
-					<option value="medium">Medium</option>
-					<option value="low">Low</option>
-				</select>
-			</div>
-
-			<!-- Loading -->
-			<div v-if="loading.tasks" class="loading-state">
-				<div class="spinner" />
-				<p>Loading task lists...</p>
-			</div>
-
-			<!-- Empty state -->
-			<div v-else-if="filteredLists.length === 0" class="empty-state">
-				<div class="empty-state-icon">&#x1F4CB;</div>
-				<div class="empty-state-title">No task lists found</div>
-				<div class="empty-state-text">
-					Quest pulls tasks from Nextcloud's CalDAV calendars with VTODO support.
-					Create a calendar with task support, or install the Tasks app to get started.
-				</div>
-				<button class="btn empty-action" @click="loadTasks">
-					&#x1F504; Try Again
-				</button>
-			</div>
-
-			<!-- Task lists grid -->
-			<div v-else class="task-lists-grid">
-				<div
-					v-for="list in filteredLists"
-					:key="list.id || list.uri"
-					class="task-list-card"
-					:style="{ '--list-color': list.color || 'var(--color-primary)' }"
-				>
-					<div class="list-header">
-						<div class="list-color-bar" />
-						<h3 class="list-name">{{ list.displayName || list.name }}</h3>
-						<span class="list-count">{{ (list.tasks || []).length }} tasks</span>
-					</div>
-
-					<div class="list-tasks">
-						<div
-							v-for="task in getFilteredTasks(list)"
-							:key="task.id || task.uid"
-							class="task-item"
-							:class="{ completed: task.completed }"
-						>
-							<input
-								type="checkbox"
-								class="task-checkbox"
-								:checked="task.completed == 1"
-								:disabled="loading.completingTask || task.completed == 1"
-								@click.prevent="handleComplete(task, list)"
+						<div class="list-header">
+							<div class="list-color-bar" />
+							<h3 class="list-name">{{ list.displayName || list.name }}</h3>
+							<span class="list-count">{{ (list.tasks || []).length }} tasks</span>
+						</div>
+						<div class="list-tasks">
+							<div
+								v-for="task in getFilteredTasks(list)"
+								:key="task.id || task.uid"
+								class="task-item"
+								:class="{ completed: task.completed }"
 							>
+								<input type="checkbox" class="task-checkbox"
+									:checked="task.completed == 1"
+									:disabled="loading.completingTask || task.completed == 1"
+									@click.prevent="handleComplete(task, list)">
+								<span class="task-title">{{ task.title || task.summary || 'Untitled task' }}</span>
+								<div class="task-meta">
+									<span class="task-priority" :class="getPriorityClass(task)">{{ getPriorityLabel(task) }}</span>
+									<span class="task-xp">+{{ getTaskXP(task) }}</span>
+								</div>
+							</div>
+							<div v-if="getFilteredTasks(list).length === 0" class="no-tasks">No matching tasks</div>
+						</div>
+						<div class="add-task-row">
+							<input v-if="addingToList === (list.id || list.uri)" v-model="newTaskTitle" type="text"
+								class="add-task-input" placeholder="Task title..."
+								@keyup.enter="submitNewTask(list)" @keyup.esc="addingToList = null" ref="addTaskInput">
+							<select v-if="addingToList === (list.id || list.uri)" v-model="newTaskPriority" class="add-task-priority">
+								<option value="low">Low</option>
+								<option value="medium">Medium</option>
+								<option value="high">High</option>
+							</select>
+							<button v-if="addingToList === (list.id || list.uri)" class="add-task-btn submit"
+								@click="submitNewTask(list)" :disabled="!newTaskTitle.trim()">Add</button>
+							<button v-else class="add-task-btn" @click="startAddTask(list)">+ Add Task</button>
+						</div>
+					</div>
+				</div>
+			</div>
 
-							<span class="task-title">{{ task.title || task.summary || 'Untitled task' }}</span>
-							<div class="task-meta">
-								<span class="task-priority" :class="getPriorityClass(task)">
-									{{ getPriorityLabel(task) }}
-								</span>
-								<span class="task-xp">+{{ getTaskXP(task) }}</span>
+			<!-- Right: Challenges + Goals + Epics + Achievements -->
+			<div class="dashboard-aside">
+				<!-- Challenges -->
+				<div v-if="challenges.length > 0" class="aside-section">
+					<h3 class="aside-title">Challenges</h3>
+					<div
+						v-for="ch in challenges"
+						:key="ch.id"
+						class="challenge-mini"
+						:class="{ completed: ch.is_completed }"
+					>
+						<div class="challenge-mini-top">
+							<span class="challenge-period" :class="ch.period">{{ ch.period }}</span>
+							<span class="challenge-mini-reward">+{{ ch.xp_reward }}</span>
+						</div>
+						<div class="challenge-mini-title">{{ ch.title }}</div>
+						<div class="challenge-bar">
+							<div class="challenge-fill" :style="{ width: ch.percentage + '%' }" />
+						</div>
+						<div class="challenge-mini-footer">{{ ch.progress }}/{{ ch.target }}</div>
+					</div>
+				</div>
+
+				<!-- Next Goals -->
+				<div v-if="nextGoals.length > 0" class="aside-section">
+					<h3 class="aside-title">Next Goals</h3>
+					<div v-for="goal in nextGoals.slice(0, 3)" :key="goal.key" class="goal-mini">
+						<div class="goal-mini-bar">
+							<div class="goal-mini-fill" :style="{ width: goal.progress + '%' }" />
+						</div>
+						<span class="goal-mini-name">{{ goal.name }}</span>
+						<span class="goal-mini-pct">{{ goal.progress }}%</span>
+					</div>
+				</div>
+
+				<!-- Active Epics -->
+				<div v-if="activeEpics.length > 0" class="aside-section">
+					<h3 class="aside-title">
+						Active Epics
+						<button class="aside-link" @click="navigateToQuests">View All</button>
+					</h3>
+					<div
+						v-for="epic in activeEpics.slice(0, 3)"
+						:key="epic.id"
+						class="epic-mini-compact"
+						@click="navigateToQuests"
+					>
+						<span class="epic-emoji-sm">{{ epic.emoji || '\uD83D\uDCDC' }}</span>
+						<div class="epic-mini-body">
+							<span class="epic-mini-name">{{ epic.title }}</span>
+							<div class="epic-mini-bar-sm">
+								<div class="epic-mini-fill-sm" :style="{ width: (epic.progress_percentage || 0) + '%', background: epic.color || '#0082c9' }" />
 							</div>
 						</div>
-
-						<div v-if="getFilteredTasks(list).length === 0" class="no-tasks">
-							No matching tasks
-						</div>
-					</div>
-
-					<!-- Add task form -->
-					<div class="add-task-row">
-						<input
-							v-if="addingToList === (list.id || list.uri)"
-							v-model="newTaskTitle"
-							type="text"
-							class="add-task-input"
-							placeholder="Task title..."
-							@keyup.enter="submitNewTask(list)"
-							@keyup.esc="addingToList = null"
-							ref="addTaskInput"
-						>
-						<select
-							v-if="addingToList === (list.id || list.uri)"
-							v-model="newTaskPriority"
-							class="add-task-priority"
-						>
-							<option value="low">Low</option>
-							<option value="medium">Medium</option>
-							<option value="high">High</option>
-						</select>
-						<button
-							v-if="addingToList === (list.id || list.uri)"
-							class="add-task-btn submit"
-							@click="submitNewTask(list)"
-							:disabled="!newTaskTitle.trim()"
-						>Add</button>
-						<button
-							v-else
-							class="add-task-btn"
-							@click="startAddTask(list)"
-						>+ Add Task</button>
-					</div>
-				</div>
-			</div>
-		</section>
-
-		<!-- Next goals -->
-		<section v-if="nextGoals.length > 0" class="content-section">
-			<div class="section-header">
-				<h2 class="section-title">Next Goals</h2>
-			</div>
-			<div class="goals-grid">
-				<div v-for="goal in nextGoals" :key="goal.key" class="goal-card">
-					<div class="goal-progress-ring">
-						<svg width="48" height="48" viewBox="0 0 48 48">
-							<circle cx="24" cy="24" r="20" fill="none" stroke="var(--color-border)" stroke-width="3" />
-							<circle cx="24" cy="24" r="20" fill="none" stroke="var(--color-primary-element, #0082c9)"
-								stroke-width="3" stroke-linecap="round"
-								:stroke-dasharray="125.6"
-								:stroke-dashoffset="125.6 * (1 - goal.progress / 100)"
-								transform="rotate(-90 24 24)" />
-						</svg>
-						<span class="goal-pct">{{ goal.progress }}%</span>
-					</div>
-					<div class="goal-info">
-						<span class="goal-name">{{ goal.name }}</span>
-						<span class="goal-desc">{{ goal.description }}</span>
-					</div>
-					<span class="goal-rarity" :class="goal.rarity">{{ goal.rarity }}</span>
-				</div>
-			</div>
-		</section>
-
-		<!-- Recent activity -->
-		<section class="content-section">
-			<div class="section-header">
-				<h2 class="section-title">Recent Activity</h2>
-			</div>
-
-			<div class="activity-grid">
-				<!-- Recent achievements -->
-				<div class="card">
-					<h3 class="card-title">Recent Achievements</h3>
-					<div v-if="recentAchievements.length === 0" class="empty-state small">
-						<div class="empty-state-icon">&#x1F3C6;</div>
-						<div class="empty-state-text">Complete tasks to unlock achievements!</div>
-					</div>
-					<div v-else class="achievement-list">
-						<div v-for="a in recentAchievements" :key="a.key" class="achievement-item">
-							<span class="achievement-icon"><img :src="iconUrl(a.icon)" :alt="a.name" class="achievement-img"></span>
-							<div class="achievement-info">
-								<span class="achievement-name">{{ a.name }}</span>
-								<span class="achievement-date">{{ formatDate(a.unlocked_at) }}</span>
-							</div>
-						</div>
+						<span class="epic-mini-count">{{ epic.completed_tasks }}/{{ epic.total_tasks }}</span>
 					</div>
 				</div>
 
-				<!-- Quick stats -->
-				<div class="card">
-					<h3 class="card-title">Quick Stats</h3>
-					<div class="stats-list">
-						<div class="stat-row">
-							<span class="stat-label">Longest Streak</span>
-							<span class="stat-value">{{ stats.streak.longest_streak }} days</span>
-						</div>
-						<div class="stat-row">
-							<span class="stat-label">Total Tasks</span>
-							<span class="stat-value">{{ stats.total_tasks || 0 }}</span>
-						</div>
-						<div class="stat-row">
-							<span class="stat-label">Current Rank</span>
-							<span class="stat-value">{{ stats.level.rank_title }}</span>
-						</div>
-						<div class="stat-row">
-							<span class="stat-label">Health</span>
-							<span class="stat-value">{{ stats.health.current_health }}/{{ stats.health.max_health }}</span>
+				<!-- Recent Achievements -->
+				<div class="aside-section">
+					<h3 class="aside-title">Recent Achievements</h3>
+					<div v-if="recentAchievements.length === 0" class="aside-empty">
+						Complete tasks to unlock achievements!
+					</div>
+					<div v-else>
+						<div v-for="a in recentAchievements.slice(0, 4)" :key="a.key" class="achievement-mini">
+							<img :src="iconUrl(a.icon)" :alt="a.name" class="achievement-img-xs">
+							<span class="achievement-mini-name">{{ a.name }}</span>
+							<span class="achievement-mini-date">{{ formatDate(a.unlocked_at) }}</span>
 						</div>
 					</div>
 				</div>
 			</div>
-		</section>
+		</div>
 	</div>
 </template>
 
@@ -627,6 +527,114 @@ export default {
 	font-size: var(--font-size-small);
 }
 
+/* ── Two-column layout ── */
+.dashboard-columns {
+	display: grid;
+	grid-template-columns: 1fr 320px;
+	gap: 20px;
+	margin-bottom: 24px;
+}
+
+.dashboard-main {
+	min-width: 0;
+}
+
+.dashboard-aside {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.aside-section {
+	background: var(--color-main-background);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-large);
+	padding: 14px;
+}
+
+.aside-title {
+	font-size: var(--font-size-small);
+	font-weight: 700;
+	color: var(--color-main-text);
+	margin: 0 0 10px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.aside-link {
+	background: none;
+	border: none;
+	color: var(--color-primary-element, #0082c9);
+	font-size: 11px;
+	cursor: pointer;
+	text-transform: none;
+	font-weight: 500;
+}
+
+.aside-empty {
+	font-size: 12px;
+	color: var(--color-text-light);
+	text-align: center;
+	padding: 12px;
+}
+
+/* ── Sidebar challenges ── */
+.challenge-mini {
+	padding: 8px 0;
+	border-bottom: 1px solid var(--color-border);
+}
+.challenge-mini:last-child { border-bottom: none; }
+.challenge-mini.completed { opacity: 0.4; }
+.challenge-mini-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.challenge-mini-reward { font-size: 11px; font-weight: 700; color: var(--color-success, #46ba61); }
+.challenge-mini-title { font-size: 12px; font-weight: 600; color: var(--color-main-text); margin-bottom: 4px; }
+.challenge-mini-footer { font-size: 11px; color: var(--color-text-light); }
+
+/* ── Sidebar goals ── */
+.goal-mini {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 0;
+}
+.goal-mini-bar { flex: 1; height: 4px; background: var(--color-background-dark); border-radius: 2px; overflow: hidden; }
+.goal-mini-fill { height: 100%; border-radius: 2px; background: var(--color-primary-element, #0082c9); }
+.goal-mini-name { font-size: 12px; color: var(--color-main-text); flex: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.goal-mini-pct { font-size: 11px; font-weight: 600; color: var(--color-text-light); width: 30px; text-align: right; }
+
+/* ── Sidebar epics ── */
+.epic-mini-compact {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 0;
+	cursor: pointer;
+	border-bottom: 1px solid var(--color-border);
+}
+.epic-mini-compact:last-child { border-bottom: none; }
+.epic-emoji-sm { font-size: 16px; flex-shrink: 0; }
+.epic-mini-body { flex: 1; min-width: 0; }
+.epic-mini-name { display: block; font-size: 12px; font-weight: 600; color: var(--color-main-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.epic-mini-bar-sm { height: 3px; background: var(--color-background-dark); border-radius: 2px; overflow: hidden; margin-top: 3px; }
+.epic-mini-fill-sm { height: 100%; border-radius: 2px; }
+.epic-mini-count { font-size: 11px; color: var(--color-text-light); flex-shrink: 0; }
+
+/* ── Sidebar achievements ── */
+.achievement-mini {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 5px 0;
+	border-bottom: 1px solid var(--color-border);
+}
+.achievement-mini:last-child { border-bottom: none; }
+.achievement-img-xs { width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; }
+.achievement-mini-name { flex: 1; font-size: 12px; font-weight: 500; color: var(--color-main-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.achievement-mini-date { font-size: 10px; color: var(--color-text-light); flex-shrink: 0; }
+
 /* ── Challenges ── */
 .challenges-grid {
 	display: grid;
@@ -706,89 +714,7 @@ export default {
 .challenge-progress { color: var(--color-text-light); }
 .challenge-reward { color: var(--color-success, #46ba61); font-weight: 600; }
 
-/* ── Active Epics ── */
-.epics-row {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-	gap: 12px;
-}
-
-.epic-mini {
-	background: var(--color-main-background);
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-large);
-	padding: 14px 16px;
-	border-left: 4px solid var(--epic-color);
-	cursor: pointer;
-	transition: box-shadow var(--transition-fast), transform var(--transition-fast);
-}
-
-.epic-mini:hover {
-	box-shadow: var(--shadow-md);
-	transform: translateY(-2px);
-}
-
-.epic-mini-top {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	margin-bottom: 8px;
-}
-
-.epic-mini-emoji {
-	font-size: 22px;
-	flex-shrink: 0;
-}
-
-.epic-mini-info {
-	flex: 1;
-	min-width: 0;
-}
-
-.epic-mini-title {
-	display: block;
-	font-size: var(--font-size-small);
-	font-weight: 600;
-	color: var(--color-main-text);
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.epic-mini-tasks {
-	display: block;
-	font-size: 11px;
-	color: var(--color-text-light);
-}
-
-.epic-mini-tier {
-	font-size: 9px;
-	padding: 2px 6px;
-	border-radius: 8px;
-	font-weight: 700;
-	text-transform: uppercase;
-	color: white;
-	flex-shrink: 0;
-}
-.epic-mini-tier.common { background: #9e9e9e; }
-.epic-mini-tier.uncommon { background: #4caf50; }
-.epic-mini-tier.rare { background: #2196f3; }
-.epic-mini-tier.epic { background: #9c27b0; }
-.epic-mini-tier.legendary { background: #ff9800; }
-
-.epic-mini-bar {
-	height: 4px;
-	background: var(--color-background-dark);
-	border-radius: 2px;
-	overflow: hidden;
-}
-
-.epic-mini-fill {
-	height: 100%;
-	border-radius: 2px;
-	background: var(--epic-color);
-	transition: width var(--transition-slow);
-}
+/* (old epic/goal sections removed — now in sidebar) */
 
 /* ── Task list cards ── */
 .task-lists-grid {
@@ -1008,194 +934,7 @@ export default {
 	font-style: italic;
 }
 
-/* ── Next goals ── */
-.goals-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-	gap: 12px;
-}
-
-.goal-card {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	padding: 12px 16px;
-	background: var(--color-main-background);
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-large);
-	transition: box-shadow var(--transition-fast);
-}
-
-.goal-card:hover {
-	box-shadow: var(--shadow-md);
-}
-
-.goal-progress-ring {
-	position: relative;
-	width: 48px;
-	height: 48px;
-	flex-shrink: 0;
-}
-
-.goal-pct {
-	position: absolute;
-	inset: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 10px;
-	font-weight: 700;
-	color: var(--color-main-text);
-}
-
-.goal-info {
-	flex: 1;
-	min-width: 0;
-}
-
-.goal-name {
-	display: block;
-	font-size: var(--font-size-small);
-	font-weight: 600;
-	color: var(--color-main-text);
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.goal-desc {
-	display: block;
-	font-size: 12px;
-	color: var(--color-text-light);
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.goal-rarity {
-	font-size: 9px;
-	padding: 2px 6px;
-	border-radius: 8px;
-	font-weight: 700;
-	text-transform: uppercase;
-	color: white;
-	flex-shrink: 0;
-}
-
-.goal-rarity.common { background: #9e9e9e; }
-.goal-rarity.rare { background: #2196f3; }
-.goal-rarity.epic { background: #9c27b0; }
-.goal-rarity.legendary { background: #ff9800; }
-
-/* ── Activity section ── */
-.activity-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 20px;
-}
-
-.card {
-	background: var(--color-main-background);
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-large);
-	padding: 24px;
-	transition: box-shadow var(--transition-fast);
-}
-
-.card:hover {
-	box-shadow: var(--shadow-md);
-}
-
-.card-title {
-	font-size: var(--font-size-large);
-	font-weight: 600;
-	color: var(--color-main-text);
-	margin: 0 0 16px 0;
-	padding-bottom: 12px;
-	border-bottom: 1px solid var(--color-border);
-}
-
-/* ── Achievement list ── */
-.achievement-list {
-	display: flex;
-	flex-direction: column;
-}
-
-.achievement-item {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	padding: 10px 0;
-	border-bottom: 1px solid var(--color-border);
-}
-
-.achievement-item:last-child {
-	border-bottom: none;
-}
-
-.achievement-icon {
-	width: 40px;
-	height: 40px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background: var(--color-background-hover);
-	border-radius: var(--radius-medium);
-	flex-shrink: 0;
-}
-
-.achievement-img {
-	width: 28px;
-	height: 28px;
-	object-fit: contain;
-}
-
-.achievement-info {
-	flex: 1;
-}
-
-.achievement-name {
-	display: block;
-	font-weight: 600;
-	color: var(--color-main-text);
-	font-size: var(--font-size-normal);
-}
-
-.achievement-date {
-	display: block;
-	font-size: var(--font-size-small);
-	color: var(--color-text-lighter);
-	margin-top: 2px;
-}
-
-/* ── Stats list ── */
-.stats-list {
-	display: flex;
-	flex-direction: column;
-}
-
-.stat-row {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 10px 0;
-	border-bottom: 1px solid var(--color-border);
-}
-
-.stat-row:last-child {
-	border-bottom: none;
-}
-
-.stat-label {
-	font-size: var(--font-size-normal);
-	color: var(--color-text-light);
-}
-
-.stat-value {
-	font-weight: 600;
-	color: var(--color-primary);
-	font-size: var(--font-size-normal);
-}
+/* (old goal/activity/card styles removed — now in sidebar) */
 
 /* ── Loading & empty states ── */
 .loading-state {
@@ -1260,6 +999,15 @@ export default {
 	.stats-grid {
 		grid-template-columns: repeat(3, 1fr);
 	}
+
+	.dashboard-columns {
+		grid-template-columns: 1fr;
+	}
+
+	.dashboard-aside {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+	}
 }
 
 @media (max-width: 768px) {
@@ -1271,12 +1019,12 @@ export default {
 		grid-template-columns: 1fr;
 	}
 
-	.activity-grid {
-		grid-template-columns: 1fr;
-	}
-
 	.filter-bar {
 		flex-direction: column;
+	}
+
+	.dashboard-aside {
+		grid-template-columns: 1fr;
 	}
 }
 </style>
