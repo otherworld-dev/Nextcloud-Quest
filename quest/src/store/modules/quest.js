@@ -402,10 +402,14 @@ const actions = {
 				// Handle completed epics
 				const completedEpics = result.completed_epics || []
 				completedEpics.forEach(epic => {
+					const bd = epic.breakdown
+					const detail = bd
+						? `+${epic.bonus_xp} XP (${bd.base} base + ${bd.task_bonus} tasks × ${bd.time_multiplier}x time)`
+						: `+${epic.bonus_xp} bonus XP`
 					commit('pushNotification', {
 						type: 'epic_complete',
 						title: `${epic.emoji || '\u{1F3C6}'} Epic Complete!`,
-						message: `${epic.title} — +${epic.bonus_xp} bonus XP`,
+						message: `${epic.title} — ${detail}`,
 						data: epic,
 					})
 				})

@@ -171,13 +171,27 @@ class EpicService {
      * Mark epic as completed and award bonus XP.
      */
     private function completeEpic(Epic $epic, string $userId): array {
-        $bonusXp = $epic->getTotalXpEarned() * 2;
-        $now = (new \DateTime())->format('Y-m-d H:i:s');
+        $now = new \DateTime();
+        $nowStr = $now->format('Y-m-d H:i:s');
+
+        // Base: 2x XP earned from sub-tasks
+        $baseBonus = $epic->getTotalXpEarned() * 2;
+
+        // Task count bonus: +10 XP per task in the epic
+        $taskCountBonus = $epic->getTotalTasks() * 10;
+
+        // Time bonus: +5% per day active, capped at 100% (30 days)
+        $createdAt = new \DateTime($epic->getCreatedAt());
+        $daysActive = max(0, (int)$now->diff($createdAt)->days);
+        $timeMultiplier = 1 + min($daysActive * 0.05, 1.0);
+
+        // Final bonus
+        $bonusXp = (int)(($baseBonus + $taskCountBonus) * $timeMultiplier);
 
         $epic->setStatus('completed');
-        $epic->setCompletedAt($now);
+        $epic->setCompletedAt($nowStr);
         $epic->setBonusXpAwarded($bonusXp);
-        $epic->setUpdatedAt($now);
+        $epic->setUpdatedAt($nowStr);
         $this->epicMapper->update($epic);
 
         // Award bonus XP to user
@@ -193,6 +207,10 @@ class EpicService {
             'epic_id' => $epic->getId(),
             'title' => $epic->getTitle(),
             'bonus_xp' => $bonusXp,
+            'base_bonus' => $baseBonus,
+            'task_count_bonus' => $taskCountBonus,
+            'days_active' => $daysActive,
+            'time_multiplier' => $timeMultiplier,
             'user' => $userId,
         ]);
 
@@ -203,6 +221,12 @@ class EpicService {
             'tier' => $epic->getTier(),
             'total_xp' => $epic->getTotalXpEarned(),
             'bonus_xp' => $bonusXp,
+            'breakdown' => [
+                'base' => $baseBonus,
+                'task_bonus' => $taskCountBonus,
+                'days_active' => $daysActive,
+                'time_multiplier' => round($timeMultiplier, 2),
+            ],
         ];
     }
 }

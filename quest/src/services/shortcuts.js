@@ -68,7 +68,7 @@ function toggleHelp() {
 				<h2 style="margin:0 0 16px;font-size:20px;font-weight:700">Keyboard Shortcuts</h2>
 				<div style="display:grid;grid-template-columns:80px 1fr;gap:6px 16px;font-size:14px">
 					<kbd style="background:var(--color-background-dark,#333);padding:2px 8px;border-radius:4px;text-align:center;font-family:monospace">Alt+D</kbd><span>Dashboard</span>
-					<kbd style="background:var(--color-background-dark,#333);padding:2px 8px;border-radius:4px;text-align:center;font-family:monospace">Alt+Q</kbd><span>Quests</span>
+					<kbd style="background:var(--color-background-dark,#333);padding:2px 8px;border-radius:4px;text-align:center;font-family:monospace">Alt+Q</kbd><span>Epics</span>
 					<kbd style="background:var(--color-background-dark,#333);padding:2px 8px;border-radius:4px;text-align:center;font-family:monospace">Alt+A</kbd><span>Achievements</span>
 					<kbd style="background:var(--color-background-dark,#333);padding:2px 8px;border-radius:4px;text-align:center;font-family:monospace">Alt+C</kbd><span>Character</span>
 					<kbd style="background:var(--color-background-dark,#333);padding:2px 8px;border-radius:4px;text-align:center;font-family:monospace">Alt+J</kbd><span>Adventure (Journey)</span>

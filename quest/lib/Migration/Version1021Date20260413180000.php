@@ -19,7 +19,7 @@ use OCP\Migration\SimpleMigrationStep;
 class Version1021Date20260413180000 extends SimpleMigrationStep {
 
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options) {
-        $connection = \OC::$server->get(OCPIDBConnection::class);
+        $connection = \OC::$server->get(\OCP\IDBConnection::class);
         $now = new \DateTime();
 
         $items = $this->getCharacterItems();

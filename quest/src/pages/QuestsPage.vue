@@ -2,8 +2,8 @@
 	<div class="quests-page">
 		<div class="page-header">
 			<div class="header-left">
-				<h1 class="page-title">Quests</h1>
-				<p class="page-subtitle">Create Epics to group tasks and earn bonus XP on completion.</p>
+				<h1 class="page-title">Epics</h1>
+				<p class="page-subtitle">Group tasks into Epics and earn bonus XP. More tasks and longer duration = bigger reward.</p>
 			</div>
 			<button class="btn primary" @click="showCreateModal = true">+ Create Epic</button>
 		</div>

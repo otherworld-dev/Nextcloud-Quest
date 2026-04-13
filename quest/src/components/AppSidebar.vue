@@ -190,7 +190,7 @@ export default {
 		navItems() {
 			return [
 				{ page: 'dashboard', icon: '\u{1F3E0}', label: 'Dashboard', url: generateUrl('/apps/quest/') },
-				{ page: 'quests', icon: '\u{2694}\uFE0F', label: 'Quests', url: generateUrl('/apps/quest/quests') },
+				{ page: 'quests', icon: '\u{1F4DC}', label: 'Epics', url: generateUrl('/apps/quest/quests') },
 				{ page: 'achievements', icon: '\u{1F3C6}', label: 'Achievements', url: generateUrl('/apps/quest/achievements') },
 				{ page: 'character', icon: '\u{1F3A8}', label: 'Character', url: generateUrl('/apps/quest/character') },
 				{ page: 'adventure', icon: '\u{1F5FA}\uFE0F', label: 'Adventure', url: generateUrl('/apps/quest/adventure') },
