@@ -166,6 +166,18 @@ class CharacterService {
             
             // Get user's unlocked items
             $unlockedItemKeys = $this->unlockMapper->getUnlockedItemKeys($userId);
+
+            // Get quantities for crafting
+            $db = \OC::$server->get(\OCP\IDBConnection::class);
+            $qtyQb = $db->getQueryBuilder();
+            $qtyQb->select('item_key', 'quantity')->from('quest_char_unlocks')
+                ->where($qtyQb->expr()->eq('user_id', $qtyQb->createNamedParameter($userId)));
+            $qtyResult = $qtyQb->executeQuery();
+            $quantities = [];
+            while ($row = $qtyResult->fetch()) {
+                $quantities[$row['item_key']] = (int)($row['quantity'] ?? 1);
+            }
+            $qtyResult->closeCursor();
             
             // Get user's achievements (for achievement-locked items)
             $userAchievements = []; // TODO: Get from achievement service
@@ -180,6 +192,7 @@ class CharacterService {
                 if (in_array($item->getItemKey(), $unlockedItemKeys)) {
                     $itemData['is_unlocked'] = true;
                     $itemData['unlock_status'] = 'unlocked';
+                    $itemData['quantity'] = $quantities[$item->getItemKey()] ?? 1;
                     $availableItems[] = $itemData;
                 } else {
                     $itemData['is_unlocked'] = false;

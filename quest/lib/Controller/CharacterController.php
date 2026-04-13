@@ -626,6 +626,136 @@ class CharacterController extends Controller {
     }
 
     /**
+     * Forge/craft items — combine 3 items of same rarity to get 1 of next tier
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     * @return JSONResponse
+     */
+    public function craftItem() {
+        try {
+            $user = $this->userSession->getUser();
+            $userId = $user->getUID();
+            $input = json_decode(file_get_contents('php://input'), true) ?? [];
+            $itemKey = $input['item_key'] ?? null;
+
+            if (!$itemKey) {
+                return new JSONResponse(['status' => 'error', 'message' => 'item_key required'], 400);
+            }
+
+            $db = \OC::$server->get(\OCP\IDBConnection::class);
+
+            // Get the item details
+            $qb = $db->getQueryBuilder();
+            $qb->select('*')->from('quest_char_items')
+                ->where($qb->expr()->eq('item_key', $qb->createNamedParameter($itemKey)));
+            $result = $qb->executeQuery();
+            $item = $result->fetch();
+            $result->closeCursor();
+
+            if (!$item) {
+                return new JSONResponse(['status' => 'error', 'message' => 'Item not found'], 404);
+            }
+
+            // Check user has quantity >= 3
+            $qb2 = $db->getQueryBuilder();
+            $qb2->select('quantity')->from('quest_char_unlocks')
+                ->where($qb2->expr()->eq('user_id', $qb2->createNamedParameter($userId)))
+                ->andWhere($qb2->expr()->eq('item_key', $qb2->createNamedParameter($itemKey)));
+            $result2 = $qb2->executeQuery();
+            $qty = (int)($result2->fetchOne() ?: 0);
+            $result2->closeCursor();
+
+            if ($qty < 3) {
+                return new JSONResponse(['status' => 'error', 'message' => "Need 3 copies (have $qty)"], 400);
+            }
+
+            // Determine next rarity
+            $rarityOrder = ['common' => 'rare', 'rare' => 'epic', 'epic' => 'legendary'];
+            $currentRarity = strtolower($item['item_rarity']);
+            $nextRarity = $rarityOrder[$currentRarity] ?? null;
+
+            if (!$nextRarity) {
+                return new JSONResponse(['status' => 'error', 'message' => 'Legendary items cannot be forged further'], 400);
+            }
+
+            // Find items of next rarity in same age and type
+            $qb3 = $db->getQueryBuilder();
+            $qb3->select('item_key', 'item_name', 'item_rarity')->from('quest_char_items')
+                ->where($qb3->expr()->eq('age_key', $qb3->createNamedParameter($item['age_key'])))
+                ->andWhere($qb3->expr()->eq('item_type', $qb3->createNamedParameter($item['item_type'])))
+                ->andWhere($qb3->expr()->eq('item_rarity', $qb3->createNamedParameter($nextRarity)));
+            $result3 = $qb3->executeQuery();
+            $candidates = $result3->fetchAll();
+            $result3->closeCursor();
+
+            if (empty($candidates)) {
+                // Fallback: any item of next rarity in same age
+                $qb4 = $db->getQueryBuilder();
+                $qb4->select('item_key', 'item_name', 'item_rarity')->from('quest_char_items')
+                    ->where($qb4->expr()->eq('age_key', $qb4->createNamedParameter($item['age_key'])))
+                    ->andWhere($qb4->expr()->eq('item_rarity', $qb4->createNamedParameter($nextRarity)));
+                $result4 = $qb4->executeQuery();
+                $candidates = $result4->fetchAll();
+                $result4->closeCursor();
+            }
+
+            if (empty($candidates)) {
+                return new JSONResponse(['status' => 'error', 'message' => 'No items of next rarity available'], 400);
+            }
+
+            // Pick random result
+            $forgedItem = $candidates[array_rand($candidates)];
+
+            // Deduct 3 from source item
+            $qb5 = $db->getQueryBuilder();
+            $qb5->update('quest_char_unlocks')
+                ->set('quantity', $qb5->createFunction('quantity - 3'))
+                ->where($qb5->expr()->eq('user_id', $qb5->createNamedParameter($userId)))
+                ->andWhere($qb5->expr()->eq('item_key', $qb5->createNamedParameter($itemKey)));
+            $qb5->executeStatement();
+
+            // Add/increment the forged item
+            $qb6 = $db->getQueryBuilder();
+            $qb6->select('id', 'quantity')->from('quest_char_unlocks')
+                ->where($qb6->expr()->eq('user_id', $qb6->createNamedParameter($userId)))
+                ->andWhere($qb6->expr()->eq('item_key', $qb6->createNamedParameter($forgedItem['item_key'])));
+            $result6 = $qb6->executeQuery();
+            $existing = $result6->fetch();
+            $result6->closeCursor();
+
+            if ($existing) {
+                $qb7 = $db->getQueryBuilder();
+                $qb7->update('quest_char_unlocks')
+                    ->set('quantity', $qb7->createFunction('quantity + 1'))
+                    ->where($qb7->expr()->eq('id', $qb7->createNamedParameter($existing['id'], \PDO::PARAM_INT)));
+                $qb7->executeStatement();
+            } else {
+                $qb7 = $db->getQueryBuilder();
+                $qb7->insert('quest_char_unlocks')->values([
+                    'user_id' => $qb7->createNamedParameter($userId),
+                    'item_key' => $qb7->createNamedParameter($forgedItem['item_key']),
+                    'unlocked_at' => $qb7->createNamedParameter((new \DateTime())->format('Y-m-d H:i:s')),
+                    'unlock_method' => $qb7->createNamedParameter('craft'),
+                    'unlock_reason' => $qb7->createNamedParameter('Forged from 3x ' . $item['item_name']),
+                    'quantity' => $qb7->createNamedParameter(1, \PDO::PARAM_INT),
+                ]);
+                $qb7->executeStatement();
+            }
+
+            return new JSONResponse([
+                'status' => 'success',
+                'data' => [
+                    'consumed' => ['item_key' => $itemKey, 'item_name' => $item['item_name'], 'count' => 3],
+                    'forged' => $forgedItem,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return new JSONResponse(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Get avatar configuration
      *
      * @NoAdminRequired

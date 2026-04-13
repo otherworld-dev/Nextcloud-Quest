@@ -120,6 +120,11 @@ class QuestAPI {
 		return data
 	}
 
+	async craftItem(itemKey) {
+		const { data } = await axios.post(`${this.baseURL}/character/craft`, { item_key: itemKey })
+		return data
+	}
+
 	async getAvatarConfig() {
 		const { data } = await axios.get(`${this.baseURL}/character/avatar`)
 		return data

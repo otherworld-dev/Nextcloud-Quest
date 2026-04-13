@@ -520,11 +520,18 @@ class JourneyService {
     }
 
     /**
-     * @return bool true if item was already owned
+     * @return bool true if item was already owned (quantity incremented)
      */
     private function unlockItem(string $userId, string $itemKey): bool {
         try {
             if ($this->unlockMapper->hasUnlocked($userId, $itemKey)) {
+                // Increment quantity for duplicates (used in crafting)
+                $qb = $this->db->getQueryBuilder();
+                $qb->update('quest_char_unlocks')
+                    ->set('quantity', $qb->createFunction('quantity + 1'))
+                    ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+                    ->andWhere($qb->expr()->eq('item_key', $qb->createNamedParameter($itemKey)));
+                $qb->executeStatement();
                 return true;
             }
             $this->unlockMapper->createUnlock($userId, $itemKey, 'quest', 'Journey encounter');

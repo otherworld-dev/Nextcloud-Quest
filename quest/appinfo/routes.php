@@ -52,6 +52,7 @@ return [
         ['name' => 'character#updateAppearance', 'url' => '/api/character/appearance', 'verb' => 'PUT'],
         ['name' => 'character#equipItem', 'url' => '/api/character/equip/{itemKey}', 'verb' => 'POST'],
         ['name' => 'character#unequipItem', 'url' => '/api/character/unequip/{slot}', 'verb' => 'DELETE'],
+        ['name' => 'character#craftItem', 'url' => '/api/character/craft', 'verb' => 'POST'],
         ['name' => 'character#getAvatarConfig', 'url' => '/api/character/avatar', 'verb' => 'GET'],
         ['name' => 'character#updateAvatarConfig', 'url' => '/api/character/avatar', 'verb' => 'PUT'],
         ['name' => 'character#getAges', 'url' => '/api/character/ages', 'verb' => 'GET'],

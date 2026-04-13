@@ -167,7 +167,25 @@
 							class="slot-action remove"
 							@click="handleUnequip(slot.key)"
 						>
-							\u2715
+							✕
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Forge -->
+			<div class="forge-card" v-if="craftableItems.length > 0">
+				<h3 class="card-title">Forge</h3>
+				<p class="forge-desc">Combine 3 copies of an item to forge one of higher rarity.</p>
+				<div class="forge-list">
+					<div v-for="item in craftableItems" :key="item.item_key" class="forge-item">
+						<img v-if="item.sprite_path" :src="spriteUrl(item.sprite_path)" class="forge-sprite">
+						<div class="forge-info">
+							<span class="forge-name">{{ item.item_name || item.name }}</span>
+							<span class="forge-qty">{{ item.quantity }}x {{ item.item_rarity || item.rarity }}</span>
+						</div>
+						<button class="forge-btn" @click="forgeItem(item)" :disabled="forging">
+							Forge →  {{ nextRarity(item) }}
 						</button>
 					</div>
 				</div>
@@ -215,13 +233,14 @@
 						<img v-if="item.sprite_path" :src="spriteUrl(item.sprite_path)" :alt="item.item_name || item.name" class="item-sprite">
 						<div v-else class="item-icon">📦</div>
 						<span class="item-power">+{{ rarityPower(item) }}</span>
+						<span v-if="(item.quantity || 0) > 1" class="item-qty">x{{ item.quantity }}</span>
 						<div class="item-name">{{ item.name }}</div>
 						<div class="item-slot-label">{{ item.slot }}</div>
 						<div class="item-footer">
 							<button
 								v-if="item.is_unlocked || item.unlocked && !isEquipped(item)"
 								class="item-btn equip"
-								@click="handleEquip(item.key)"
+								@click="handleEquip(item.item_key || item.key)"
 							>
 								Equip
 							</button>
@@ -271,6 +290,7 @@ export default {
 				blue: '#2980b9', green: '#27ae60',
 			},
 			hairStyles: ['short', 'long', 'mohawk', 'bald', 'ponytail', 'curly', 'spiky', 'braided'],
+			forging: false,
 			equipmentSlots: [
 				{ key: 'clothing', icon: '\uD83D\uDC55', label: 'Clothing' },
 				{ key: 'weapon', icon: '\u2694\uFE0F', label: 'Weapon' },
@@ -327,6 +347,15 @@ export default {
 			return this.character.items || []
 		},
 
+		craftableItems() {
+			return this.allItems.filter(i => {
+				if (!(i.is_unlocked || i.unlocked)) return false
+				if ((i.quantity || 1) < 3) return false
+				const r = (i.item_rarity || i.rarity || '').toLowerCase()
+				return r !== 'legendary'
+			})
+		},
+
 		filteredItems() {
 			let items = this.allItems
 			if (this.itemFilter === 'unlocked') items = items.filter(i => i.is_unlocked || i.unlocked)
@@ -371,6 +400,32 @@ export default {
 			}
 		},
 
+		nextRarity(item) {
+			const map = { common: 'Rare', rare: 'Epic', epic: 'Legendary' }
+			return map[(item.item_rarity || item.rarity || '').toLowerCase()] || '?'
+		},
+
+		async forgeItem(item) {
+			if (this.forging) return
+			this.forging = true
+			try {
+				const api = (await import('../services/api')).default
+				const result = await api.craftItem(item.item_key || item.key)
+				if (result.status === 'success') {
+					this.$store.commit('quest/pushNotification', {
+						type: 'achievement',
+						title: 'Forged: ' + result.data.forged.item_name,
+						message: result.data.forged.item_rarity + ' item created!',
+					})
+					this.loadCharacter()
+				}
+			} catch (e) {
+				console.error('Forge failed:', e)
+			} finally {
+				this.forging = false
+			}
+		},
+
 		spriteUrl(path) {
 			return generateFilePath('quest', '', 'img/' + path)
 		},
@@ -396,7 +451,7 @@ export default {
 		getEquippedSprite(slot) {
 			const eq = this.appearance
 			if (eq[slot]) {
-				const item = this.allItems.find(i => i.item_key === eq[slot] || i.key === eq[slot])
+				const item = this.allItems.find(i => (i.item_key || i.key) === eq[slot])
 				return item?.sprite_path || null
 			}
 			return null
@@ -405,15 +460,16 @@ export default {
 		getEquippedName(slot) {
 			const eq = this.appearance
 			if (eq[slot]) {
-				const item = this.allItems.find(i => i.key === eq[slot])
-				return item ? item.name : eq[slot]
+				const item = this.allItems.find(i => (i.item_key || i.key) === eq[slot])
+				return item ? (item.item_name || item.name) : eq[slot]
 			}
 			return null
 		},
 
 		isEquipped(item) {
 			const eq = this.appearance
-			return Object.values(eq).includes(item.key)
+			const key = item.item_key || item.key
+			return Object.values(eq).includes(key)
 		},
 
 		async handleEquip(itemKey) {
@@ -556,6 +612,18 @@ export default {
 .power-icon { font-size: 16px; }
 .power-value { font-size: var(--font-size-large); font-weight: 700; color: var(--color-main-text); }
 .power-label { font-size: 12px; color: var(--color-text-light); }
+
+.item-qty {
+	position: absolute;
+	bottom: 6px;
+	right: 6px;
+	font-size: 10px;
+	font-weight: 700;
+	color: white;
+	background: var(--color-primary-element, #0082c9);
+	padding: 1px 5px;
+	border-radius: 8px;
+}
 
 .item-power {
 	font-size: 10px;
@@ -952,6 +1020,56 @@ export default {
 	color: var(--color-text-light);
 	letter-spacing: 0.3px;
 }
+
+/* ── Forge ── */
+.forge-card {
+	background: var(--color-main-background);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-large);
+	padding: 20px;
+	margin-bottom: 24px;
+	border-top: 3px solid #ff9800;
+}
+
+.forge-desc {
+	font-size: var(--font-size-small);
+	color: var(--color-text-light);
+	margin: 0 0 12px;
+}
+
+.forge-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.forge-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 12px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-medium);
+}
+
+.forge-sprite { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
+.forge-info { flex: 1; min-width: 0; }
+.forge-name { display: block; font-size: var(--font-size-small); font-weight: 600; color: var(--color-main-text); }
+.forge-qty { display: block; font-size: 11px; color: var(--color-text-light); }
+
+.forge-btn {
+	padding: 6px 14px;
+	background: linear-gradient(135deg, #ff9800, #ffb74d);
+	color: white;
+	border: none;
+	border-radius: var(--radius-medium);
+	cursor: pointer;
+	font-size: 12px;
+	font-weight: 600;
+	white-space: nowrap;
+}
+.forge-btn:hover { filter: brightness(1.1); }
+.forge-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .item-sprite {
 	width: 40px;
