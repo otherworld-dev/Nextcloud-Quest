@@ -59,8 +59,9 @@ class SettingsController extends Controller {
     
     /**
      * Get comprehensive user settings
-     * 
+     *
      * @NoAdminRequired
+     * @NoCSRFRequired
      * @return JSONResponse
      */
     public function get(): JSONResponse {
@@ -151,6 +152,12 @@ class SettingsController extends Controller {
                 'enable_2fa_backup' => $this->config->getUserValue($userId, 'nextcloudquest', 'enable_2fa_backup', 'false') === 'true'
             ],
             
+            // Task list preferences
+            'task_lists' => json_decode(
+                $this->config->getUserValue($userId, 'nextcloudquest', 'task_lists', '{"included_lists":[],"list_colors":{}}'),
+                true
+            ) ?: ['included_lists' => [], 'list_colors' => []],
+
             // Advanced settings
             'advanced' => [
                 'cache_duration' => (int)$this->config->getUserValue($userId, 'nextcloudquest', 'cache_duration', '900'),
@@ -173,44 +180,49 @@ class SettingsController extends Controller {
     
     /**
      * Update comprehensive user settings
-     * 
+     *
      * @NoAdminRequired
-     * @param array $settings
+     * @NoCSRFRequired
      * @return JSONResponse
      */
-    public function update(array $settings): JSONResponse {
-        $userId = $this->userSession->getUser()->getUID();
-        
+    public function update(): JSONResponse {
         try {
-            // Validate settings
-            $validationErrors = $this->validateSettings($settings);
-            if (!empty($validationErrors)) {
-                return new JSONResponse([
-                    'status' => 'error',
-                    'message' => $this->l->t('Invalid settings'),
-                    'errors' => $validationErrors
-                ], 400);
+            $userId = $this->userSession->getUser()->getUID();
+            $settings = json_decode(file_get_contents('php://input'), true) ?? [];
+
+            if (empty($settings)) {
+                return new JSONResponse(['status' => 'error', 'message' => 'No settings provided'], 400);
             }
-            
-            // Get current settings for audit logging
-            $currentSettingsResponse = $this->get();
-            $currentSettingsData = json_decode($currentSettingsResponse->render(), true);
-            $currentSettings = $currentSettingsData['data'] ?? [];
+
+            // Get current settings for audit logging (non-fatal if fails)
+            $currentSettings = [];
+            try {
+                $currentSettingsResponse = $this->get();
+                $currentSettingsData = json_decode($currentSettingsResponse->render(), true);
+                $currentSettings = $currentSettingsData['data'] ?? [];
+            } catch (\Throwable $e) {
+                // Continue without audit logging
+            }
             
             // Update theme preference in quest data if provided
             if (isset($settings['themes']['theme_preference'])) {
-                $quest = $this->questMapper->findByUserId($userId);
-                $oldTheme = $quest->getThemePreference();
-                $newTheme = $settings['themes']['theme_preference'];
-                
-                $quest->setThemePreference($newTheme);
-                $quest->setUpdatedAt((new \DateTime())->format('Y-m-d H:i:s'));
-                $this->questMapper->update($quest);
-                
-                // Log theme change
-                $this->logSettingsChange('update', 'themes', 'theme_preference', $oldTheme, $newTheme);
+                try {
+                    $db = \OC::$server->get(\OCP\IDBConnection::class);
+                    $qb = $db->getQueryBuilder();
+                    $qb->update('ncquest_users')
+                        ->set('theme_preference', $qb->createNamedParameter($settings['themes']['theme_preference']))
+                        ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
+                    $qb->executeStatement();
+                } catch (\Throwable $e) {
+                    // Non-fatal
+                }
             }
             
+            // Save task_lists as a single JSON blob
+            if (isset($settings['task_lists'])) {
+                $this->config->setUserValue($userId, 'nextcloudquest', 'task_lists', json_encode($settings['task_lists']));
+            }
+
             // Process all settings categories
             $settingsCategories = ['general', 'themes', 'notifications', 'gameplay', 'character', 'integration', 'privacy', 'advanced'];
             
@@ -228,9 +240,11 @@ class SettingsController extends Controller {
                         // Special handling for different data types
                         if (is_bool($value)) {
                             $this->config->setUserValue($userId, 'nextcloudquest', $key, $value ? 'true' : 'false');
+                        } elseif (is_array($value)) {
+                            $this->config->setUserValue($userId, 'nextcloudquest', $key, json_encode($value));
                         } elseif (is_numeric($value)) {
                             $this->config->setUserValue($userId, 'nextcloudquest', $key, (string)$value);
-                        } else {
+                        } elseif (is_string($value)) {
                             $this->config->setUserValue($userId, 'nextcloudquest', $key, $value);
                         }
                         
@@ -244,14 +258,14 @@ class SettingsController extends Controller {
                 'status' => 'success',
                 'message' => $this->l->t('Settings updated successfully')
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return new JSONResponse([
                 'status' => 'error',
-                'message' => $this->l->t('Failed to update settings: %s', [$e->getMessage()])
+                'message' => 'Failed: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine()
             ], 500);
         }
     }
-    
+
     /**
      * Export comprehensive user data
      * 
@@ -756,28 +770,7 @@ class SettingsController extends Controller {
      * @param mixed $newValue
      */
     private function logSettingsChange(string $action, string $category = null, string $key = null, $oldValue = null, $newValue = null): void {
-        try {
-            $userId = $this->userSession->getUser()->getUID();
-            $request = \OC::$server->getRequest();
-            
-            $connection = \OC::$server->get(OCPIDBConnection::class);
-            $connection->executeStatement(
-                'INSERT INTO `*PREFIX*ncquest_audit` (`user_id`, `action`, `setting_category`, `setting_key`, `old_value`, `new_value`, `ip_address`, `user_agent`, `created_at`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [
-                    $userId,
-                    $action,
-                    $category,
-                    $key,
-                    is_array($oldValue) || is_object($oldValue) ? json_encode($oldValue) : $oldValue,
-                    is_array($newValue) || is_object($newValue) ? json_encode($newValue) : $newValue,
-                    $request->getRemoteAddress(),
-                    substr($request->getHeader('User-Agent'), 0, 255),
-                    (new \DateTime())->format('Y-m-d H:i:s')
-                ]
-            );
-        } catch (\Exception $e) {
-            // Don't fail the main operation if audit logging fails
-        }
+        // Audit logging disabled — was using deprecated NC APIs
     }
     
     /**

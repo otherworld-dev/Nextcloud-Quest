@@ -211,6 +211,12 @@ export default {
 						privacy: { ...(val.privacy || {}) },
 						character: { ...(val.character || {}) },
 					}
+					if (val.task_lists) {
+						this.listSettings = {
+							included_lists: [...(val.task_lists.included_lists || [])],
+							list_colors: { ...(val.task_lists.list_colors || {}) },
+						}
+					}
 				}
 			},
 			immediate: true,
@@ -260,10 +266,23 @@ export default {
 
 		async saveSettings() {
 			try {
-				await this.updateSettings(this.local)
+				await this.updateSettings({
+					...this.local,
+					task_lists: this.listSettings,
+				})
 				this.dirty = false
+				this.$store.commit('quest/pushNotification', {
+					type: 'xp_gain',
+					title: 'Settings Saved',
+					message: 'Your preferences have been updated.',
+				})
 			} catch (e) {
 				console.error('Failed to save:', e)
+				this.$store.commit('quest/pushNotification', {
+					type: 'journey_lose',
+					title: 'Save Failed',
+					message: e.message || 'Could not save settings.',
+				})
 			}
 		},
 

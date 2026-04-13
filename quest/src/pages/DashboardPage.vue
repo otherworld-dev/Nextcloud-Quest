@@ -229,7 +229,7 @@ export default {
 	},
 
 	computed: {
-		...mapState('quest', ['stats', 'taskLists', 'achievements', 'epics', 'challenges', 'loading']),
+		...mapState('quest', ['stats', 'taskLists', 'achievements', 'epics', 'challenges', 'settings', 'loading']),
 		...mapGetters('quest', ['unlockedAchievements', 'activeEpics']),
 
 		achievementSummary() {
@@ -241,7 +241,14 @@ export default {
 		},
 
 		filteredLists() {
+			const included = this.settings?.task_lists?.included_lists
 			return this.taskLists.filter(list => {
+				// Filter by included lists (if configured)
+				if (included && included.length > 0) {
+					const id = list.id || list.uri
+					if (!included.includes(id) && !included.includes(String(id))) return false
+				}
+				// Filter by search
 				if (!this.searchQuery) return true
 				const q = this.searchQuery.toLowerCase()
 				const name = (list.displayName || list.name || '').toLowerCase()
@@ -276,6 +283,7 @@ export default {
 	},
 
 	mounted() {
+		this.loadSettings()
 		this.loadTasks()
 		this.loadAchievements()
 		this.loadEpics()
@@ -283,7 +291,7 @@ export default {
 	},
 
 	methods: {
-		...mapActions('quest', ['loadTaskLists', 'loadAchievements', 'loadEpics', 'loadChallenges', 'completeTask', 'createTask']),
+		...mapActions('quest', ['loadSettings', 'loadTaskLists', 'loadAchievements', 'loadEpics', 'loadChallenges', 'completeTask', 'createTask']),
 
 		navigateToQuests() {
 			this.$store.commit('quest/setActivePage', 'quests')
