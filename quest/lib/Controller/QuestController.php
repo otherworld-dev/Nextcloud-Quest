@@ -134,6 +134,51 @@ class QuestController extends Controller {
     }
     
     /**
+     * Create a new task in a task list
+     *
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     * @return JSONResponse
+     */
+    public function createTask() {
+        try {
+            $user = $this->userSession->getUser();
+            if (!$user) {
+                throw new \Exception('User not found');
+            }
+
+            if (!$this->tasksIntegration) {
+                return new JSONResponse(['status' => 'error', 'message' => 'Tasks integration not available'], 400);
+            }
+
+            $input = json_decode(file_get_contents('php://input'), true);
+            $title = $input['title'] ?? null;
+            $listId = $input['list_id'] ?? null;
+
+            if (!$title || !$listId) {
+                return new JSONResponse(['status' => 'error', 'message' => 'Title and list_id are required'], 400);
+            }
+
+            $task = $this->tasksIntegration->createTask(
+                $user->getUID(),
+                (int)$listId,
+                $title,
+                $input['priority'] ?? 'medium',
+                $input['description'] ?? null,
+                $input['due_date'] ?? null
+            );
+
+            if (!$task) {
+                return new JSONResponse(['status' => 'error', 'message' => 'Failed to create task'], 500);
+            }
+
+            return new JSONResponse(['status' => 'success', 'data' => $task]);
+        } catch (\Exception $e) {
+            return new JSONResponse(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Get quest lists (task lists from Tasks app)
      * 
      * @NoAdminRequired

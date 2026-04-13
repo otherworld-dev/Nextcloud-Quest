@@ -432,7 +432,7 @@ class TasksApiIntegration {
                         'title' => isset($vtodo->SUMMARY) ? (string)$vtodo->SUMMARY : 'Untitled Task',
                         'description' => isset($vtodo->DESCRIPTION) ? (string)$vtodo->DESCRIPTION : '',
                         'completed' => isset($vtodo->STATUS) && (string)$vtodo->STATUS === 'COMPLETED' ? 1 : 0,
-                        'priority' => isset($vtodo->PRIORITY) ? $this->mapTaskPriority((int)$vtodo->PRIORITY) : 'low',
+                        'priority' => isset($vtodo->PRIORITY) ? $this->mapTaskPriority((int)(string)$vtodo->PRIORITY) : 'low',
                         'due_date' => isset($vtodo->DUE) ? (string)$vtodo->DUE : null,
                         'created_at' => $task['firstoccurence'],
                         'modified_at' => $task['lastmodified']
@@ -465,6 +465,117 @@ class TasksApiIntegration {
         }
     }
     
+    /**
+     * Create a new task in a calendar list
+     *
+     * @param string $userId
+     * @param int $listId Calendar ID
+     * @param string $title Task title
+     * @param string $priority Priority (low, medium, high)
+     * @param string|null $description Optional description
+     * @param string|null $dueDate Optional due date (Y-m-d format)
+     * @return array|null Created task data or null on failure
+     */
+    public function createTask(string $userId, int $listId, string $title, string $priority = 'medium', ?string $description = null, ?string $dueDate = null): ?array {
+        if (!$this->isTasksAppAvailable()) {
+            return null;
+        }
+
+        try {
+            $uid = strtoupper(bin2hex(random_bytes(16)));
+            $now = new \DateTime();
+
+            // Map priority to CalDAV PRIORITY (1-3=high, 5=medium, 9=low)
+            $calPriority = match($priority) {
+                'high' => 1,
+                'medium' => 5,
+                default => 9,
+            };
+
+            // Build VTODO
+            $vtodo = "BEGIN:VCALENDAR\r\n";
+            $vtodo .= "VERSION:2.0\r\n";
+            $vtodo .= "PRODID:-//Nextcloud Quest//EN\r\n";
+            $vtodo .= "BEGIN:VTODO\r\n";
+            $vtodo .= "UID:$uid\r\n";
+            $vtodo .= "DTSTAMP:" . $now->format('Ymd\THis\Z') . "\r\n";
+            $vtodo .= "CREATED:" . $now->format('Ymd\THis\Z') . "\r\n";
+            $vtodo .= "LAST-MODIFIED:" . $now->format('Ymd\THis\Z') . "\r\n";
+            $vtodo .= "SUMMARY:" . $this->escapeVCalText($title) . "\r\n";
+            if ($description) {
+                $vtodo .= "DESCRIPTION:" . $this->escapeVCalText($description) . "\r\n";
+            }
+            $vtodo .= "PRIORITY:$calPriority\r\n";
+            $vtodo .= "STATUS:NEEDS-ACTION\r\n";
+            $vtodo .= "PERCENT-COMPLETE:0\r\n";
+            if ($dueDate) {
+                $vtodo .= "DUE;VALUE=DATE:" . str_replace('-', '', $dueDate) . "\r\n";
+            }
+            $vtodo .= "END:VTODO\r\n";
+            $vtodo .= "END:VCALENDAR\r\n";
+
+            // Insert into calendarobjects
+            $uri = strtolower($uid) . '.ics';
+            $qb = $this->db->getQueryBuilder();
+            $qb->insert('calendarobjects')
+                ->values([
+                    'calendarid' => $qb->createNamedParameter($listId, \PDO::PARAM_INT),
+                    'uri' => $qb->createNamedParameter($uri),
+                    'calendardata' => $qb->createNamedParameter($vtodo),
+                    'lastmodified' => $qb->createNamedParameter(time(), \PDO::PARAM_INT),
+                    'etag' => $qb->createNamedParameter(md5($vtodo)),
+                    'size' => $qb->createNamedParameter(strlen($vtodo), \PDO::PARAM_INT),
+                    'componenttype' => $qb->createNamedParameter('VTODO'),
+                    'uid' => $qb->createNamedParameter($uid),
+                    'firstoccurence' => $qb->createNamedParameter($now->getTimestamp(), \PDO::PARAM_INT),
+                    'lastoccurence' => $qb->createNamedParameter($now->getTimestamp(), \PDO::PARAM_INT),
+                    'classification' => $qb->createNamedParameter(0, \PDO::PARAM_INT),
+                ]);
+            $qb->executeStatement();
+
+            // Get the inserted ID
+            $taskId = $this->db->lastInsertId('*PREFIX*calendarobjects');
+
+            // Update calendar's ctag to notify sync clients
+            $qb2 = $this->db->getQueryBuilder();
+            $qb2->update('calendars')
+                ->set('calendarorder', $qb2->createFunction('calendarorder'))
+                ->where($qb2->expr()->eq('id', $qb2->createNamedParameter($listId, \PDO::PARAM_INT)));
+            $qb2->executeStatement();
+
+            $this->logger->info('Task created', [
+                'taskId' => $taskId,
+                'listId' => $listId,
+                'title' => $title,
+                'userId' => $userId,
+            ]);
+
+            return [
+                'id' => $taskId,
+                'title' => $title,
+                'description' => $description,
+                'priority' => $priority,
+                'due_date' => $dueDate,
+                'completed' => 0,
+                'list_id' => $listId,
+            ];
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to create task', [
+                'listId' => $listId,
+                'title' => $title,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Escape text for iCalendar format
+     */
+    private function escapeVCalText(string $text): string {
+        return str_replace(["\n", "\r", ',', ';', '\\'], ['\\n', '', '\\,', '\\;', '\\\\'], $text);
+    }
+
     /**
      * Calculate estimated XP for a task based on priority
      * 

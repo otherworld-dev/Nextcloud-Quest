@@ -250,6 +250,19 @@ const actions = {
 		}
 	},
 
+	async createTask({ dispatch }, { listId, title, priority, description, dueDate }) {
+		try {
+			const response = await api.createTask(listId, title, priority, description, dueDate)
+			if (response.status === 'success') {
+				dispatch('loadTaskLists')
+				return response.data
+			}
+		} catch (error) {
+			console.error('Failed to create task:', error)
+			throw error
+		}
+	},
+
 	async loadTaskLists({ commit }) {
 		commit('setLoading', { type: 'tasks', loading: true })
 		try {

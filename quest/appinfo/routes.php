@@ -22,6 +22,7 @@ return [
         ['name' => 'questStats#getUserStats', 'url' => '/api/user-stats', 'verb' => 'GET'],
         // Task list endpoints (using quest controller)
         ['name' => 'quest#getQuestLists', 'url' => '/api/quest-lists', 'verb' => 'GET'],
+        ['name' => 'quest#createTask', 'url' => '/api/create-task', 'verb' => 'POST'],
         // Task completion endpoints (using quest controller)
         ['name' => 'quest#testEndpoint', 'url' => '/api/test-quest', 'verb' => 'GET'],
         ['name' => 'quest#testPost', 'url' => '/api/test-post', 'verb' => 'POST'],

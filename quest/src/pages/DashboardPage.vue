@@ -138,6 +138,40 @@
 							No matching tasks
 						</div>
 					</div>
+
+					<!-- Add task form -->
+					<div class="add-task-row">
+						<input
+							v-if="addingToList === (list.id || list.uri)"
+							v-model="newTaskTitle"
+							type="text"
+							class="add-task-input"
+							placeholder="Task title..."
+							@keyup.enter="submitNewTask(list)"
+							@keyup.esc="addingToList = null"
+							ref="addTaskInput"
+						>
+						<select
+							v-if="addingToList === (list.id || list.uri)"
+							v-model="newTaskPriority"
+							class="add-task-priority"
+						>
+							<option value="low">Low</option>
+							<option value="medium">Medium</option>
+							<option value="high">High</option>
+						</select>
+						<button
+							v-if="addingToList === (list.id || list.uri)"
+							class="add-task-btn submit"
+							@click="submitNewTask(list)"
+							:disabled="!newTaskTitle.trim()"
+						>Add</button>
+						<button
+							v-else
+							class="add-task-btn"
+							@click="startAddTask(list)"
+						>+ Add Task</button>
+					</div>
 				</div>
 			</div>
 		</section>
@@ -236,6 +270,9 @@ export default {
 		return {
 			searchQuery: '',
 			priorityFilter: 'all',
+			addingToList: null,
+			newTaskTitle: '',
+			newTaskPriority: 'medium',
 			icons: {
 				level: '\u2B50',
 				xp: '\u2728',
@@ -302,11 +339,39 @@ export default {
 	},
 
 	methods: {
-		...mapActions('quest', ['loadTaskLists', 'loadAchievements', 'loadEpics', 'completeTask']),
+		...mapActions('quest', ['loadTaskLists', 'loadAchievements', 'loadEpics', 'completeTask', 'createTask']),
 
 		navigateToQuests() {
 			this.$store.commit('quest/setActivePage', 'quests')
 			window.history.pushState({}, '', '/index.php/apps/quest/quests')
+		},
+
+		startAddTask(list) {
+			this.addingToList = list.id || list.uri
+			this.newTaskTitle = ''
+			this.newTaskPriority = 'medium'
+			this.$nextTick(() => {
+				const inputs = this.$refs.addTaskInput
+				if (inputs) {
+					const input = Array.isArray(inputs) ? inputs[inputs.length - 1] : inputs
+					if (input) input.focus()
+				}
+			})
+		},
+
+		async submitNewTask(list) {
+			if (!this.newTaskTitle.trim()) return
+			try {
+				await this.createTask({
+					listId: list.id || list.uri,
+					title: this.newTaskTitle.trim(),
+					priority: this.newTaskPriority,
+				})
+				this.newTaskTitle = ''
+				this.addingToList = null
+			} catch (e) {
+				console.error('Failed to create task:', e)
+			}
 		},
 
 		iconUrl(icon) {
@@ -759,6 +824,69 @@ export default {
 	color: var(--color-success);
 	flex-shrink: 0;
 	white-space: nowrap;
+}
+
+/* ── Add task ── */
+.add-task-row {
+	display: flex;
+	gap: 6px;
+	padding: 6px 12px;
+	border-top: 1px solid var(--color-border);
+}
+
+.add-task-input {
+	flex: 1;
+	padding: 4px 8px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-small);
+	background: var(--color-main-background);
+	color: var(--color-main-text);
+	font-size: var(--font-size-small);
+}
+
+.add-task-input:focus {
+	outline: none;
+	border-color: var(--color-primary-element, #0082c9);
+}
+
+.add-task-priority {
+	padding: 4px 6px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-small);
+	background: var(--color-main-background);
+	color: var(--color-main-text);
+	font-size: 12px;
+}
+
+.add-task-btn {
+	padding: 4px 12px;
+	border: none;
+	border-radius: var(--radius-small);
+	background: var(--color-background-hover);
+	color: var(--color-text-light);
+	cursor: pointer;
+	font-size: 12px;
+	white-space: nowrap;
+	transition: all var(--transition-fast);
+}
+
+.add-task-btn:hover {
+	background: var(--color-background-dark);
+	color: var(--color-main-text);
+}
+
+.add-task-btn.submit {
+	background: var(--color-primary-element, #0082c9);
+	color: white;
+}
+
+.add-task-btn.submit:hover {
+	filter: brightness(1.1);
+}
+
+.add-task-btn:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
 }
 
 .no-tasks {
