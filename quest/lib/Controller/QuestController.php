@@ -1135,30 +1135,69 @@ class QuestController extends Controller {
      * @return JSONResponse
      */
     public function getLeaderboard($orderBy = 'lifetime_xp', $limit = 10, $offset = 0) {
-        $userId = $this->userSession->getUser()->getUID();
-        
-        $leaderboard = $this->questMapper->getLeaderboard($limit, $offset, $orderBy);
-        $userRank = $this->questMapper->getUserRank($userId, $orderBy);
-        
-        $leaderboardData = array_map(function($quest) {
-            return [
-                'user_id' => $quest->getUserId(),
-                'level' => $quest->getLevel(),
-                'rank_title' => $this->xpService->getRankTitle($quest->getLevel()),
-                'lifetime_xp' => $quest->getLifetimeXp(),
-                'current_streak' => $quest->getCurrentStreak(),
-                'longest_streak' => $quest->getLongestStreak()
-            ];
-        }, $leaderboard);
-        
-        return new JSONResponse([
-            'status' => 'success',
-            'data' => [
-                'leaderboard' => $leaderboardData,
-                'user_rank' => $userRank,
-                'total_users' => count($this->questMapper->findAll())
-            ]
-        ]);
+        try {
+            $userId = $this->userSession->getUser()->getUID();
+            $db = \OC::$server->get(\OCP\IDBConnection::class);
+
+            // Validate orderBy
+            $allowed = ['lifetime_xp', 'level', 'current_streak', 'total_tasks_completed'];
+            if (!in_array($orderBy, $allowed)) {
+                $orderBy = 'lifetime_xp';
+            }
+
+            // Get leaderboard
+            $qb = $db->getQueryBuilder();
+            $qb->select('user_id', 'level', 'lifetime_xp', 'current_streak', 'longest_streak', 'total_tasks_completed')
+                ->from('ncquest_users')
+                ->orderBy($orderBy, 'DESC')
+                ->setMaxResults((int)$limit)
+                ->setFirstResult((int)$offset);
+            $result = $qb->executeQuery();
+            $rows = $result->fetchAll();
+            $result->closeCursor();
+
+            $leaderboard = array_map(function($row) {
+                return [
+                    'user_id' => $row['user_id'],
+                    'level' => (int)$row['level'],
+                    'rank_title' => $this->getRankTitle((int)$row['level']),
+                    'lifetime_xp' => (int)$row['lifetime_xp'],
+                    'current_streak' => (int)$row['current_streak'],
+                    'longest_streak' => (int)$row['longest_streak'],
+                    'total_tasks' => (int)($row['total_tasks_completed'] ?? 0),
+                ];
+            }, $rows);
+
+            // Get user rank
+            $qb2 = $db->getQueryBuilder();
+            $qb2->select($qb2->createFunction('COUNT(*) as rank'))
+                ->from('ncquest_users')
+                ->where($qb2->expr()->gt($orderBy, $qb2->createFunction(
+                    '(SELECT ' . $orderBy . ' FROM *PREFIX*ncquest_users WHERE user_id = ' . $qb2->createNamedParameter($userId) . ')'
+                )));
+            $result2 = $qb2->executeQuery();
+            $userRank = (int)$result2->fetchOne() + 1;
+            $result2->closeCursor();
+
+            // Total users
+            $qb3 = $db->getQueryBuilder();
+            $qb3->select($qb3->createFunction('COUNT(*) as total'))
+                ->from('ncquest_users');
+            $result3 = $qb3->executeQuery();
+            $totalUsers = (int)$result3->fetchOne();
+            $result3->closeCursor();
+
+            return new JSONResponse([
+                'status' => 'success',
+                'data' => [
+                    'leaderboard' => $leaderboard,
+                    'user_rank' => $userRank,
+                    'total_users' => $totalUsers,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return new JSONResponse(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
     }
     
     /**

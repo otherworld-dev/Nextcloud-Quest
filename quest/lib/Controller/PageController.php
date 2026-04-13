@@ -56,6 +56,14 @@ class PageController extends BasePageController {
      * @NoAdminRequired
      * @NoCSRFRequired
      */
+    public function leaderboard(): TemplateResponse {
+        return $this->renderPage('leaderboard', 'index');
+    }
+
+    /**
+     * @NoAdminRequired
+     * @NoCSRFRequired
+     */
     public function settings(): TemplateResponse {
         return $this->renderPage('settings', 'settings');
     }

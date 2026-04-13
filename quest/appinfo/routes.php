@@ -13,6 +13,7 @@ return [
         ['name' => 'page#quests', 'url' => '/quests', 'verb' => 'GET'],
         ['name' => 'page#achievements', 'url' => '/achievements', 'verb' => 'GET'],
         ['name' => 'page#character', 'url' => '/character', 'verb' => 'GET'],
+        ['name' => 'page#leaderboard', 'url' => '/leaderboard', 'verb' => 'GET'],
         ['name' => 'page#settings', 'url' => '/settings', 'verb' => 'GET'],
         
         // API routes for quest functionality

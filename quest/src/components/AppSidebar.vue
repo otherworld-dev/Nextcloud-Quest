@@ -161,6 +161,7 @@ export default {
 				{ page: 'achievements', icon: '\u{1F3C6}', label: 'Achievements', url: generateUrl('/apps/quest/achievements') },
 				{ page: 'character', icon: '\u{1F3A8}', label: 'Character', url: generateUrl('/apps/quest/character') },
 				{ page: 'adventure', icon: '\u{1F5FA}\uFE0F', label: 'Adventure', url: generateUrl('/apps/quest/adventure') },
+				{ page: 'leaderboard', icon: '\u{1F451}', label: 'Leaderboard', url: generateUrl('/apps/quest/leaderboard') },
 				{ page: 'settings', icon: '\u{2699}\uFE0F', label: 'Settings', url: generateUrl('/apps/quest/settings') },
 			]
 		},

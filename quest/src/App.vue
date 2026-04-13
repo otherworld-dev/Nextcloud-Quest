@@ -21,6 +21,7 @@ import AchievementsPage from './pages/AchievementsPage.vue'
 import CharacterPage from './pages/CharacterPage.vue'
 import AdventurePage from './pages/AdventurePage.vue'
 import QuestsPage from './pages/QuestsPage.vue'
+import LeaderboardPage from './pages/LeaderboardPage.vue'
 import SettingsPage from './pages/SettingsPage.vue'
 
 const PAGE_MAP = {
@@ -29,6 +30,7 @@ const PAGE_MAP = {
 	achievements: 'AchievementsPage',
 	character: 'CharacterPage',
 	adventure: 'AdventurePage',
+	leaderboard: 'LeaderboardPage',
 	settings: 'SettingsPage',
 }
 
@@ -43,6 +45,7 @@ export default {
 		CharacterPage,
 		AdventurePage,
 		QuestsPage,
+		LeaderboardPage,
 		SettingsPage,
 	},
 
