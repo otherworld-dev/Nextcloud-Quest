@@ -43,7 +43,7 @@
 					<div class="gauge">
 						<div class="gauge-header">
 							<span class="gauge-label">Lv. {{ stats.level.level }}</span>
-							<span class="gauge-value">{{ stats.level.xp }}/{{ stats.level.xp_to_next }}</span>
+							<span class="gauge-value">{{ Math.round(stats.level.progress_percentage || 0) }}%</span>
 						</div>
 						<div class="gauge-bar">
 							<div class="gauge-fill xp" :style="{ width: xpPercentage + '%' }" />

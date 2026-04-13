@@ -248,6 +248,14 @@ const actions = {
 					mapped.tasks_this_week = data.tasks.completed_this_week || 0
 					mapped.total_tasks = data.tasks.total_completed || 0
 				}
+				// Normalize level field names from API
+				if (data.level) {
+					mapped.level = {
+						...data.level,
+						xp_to_next: data.level.xp_to_next_level ?? data.level.xp_to_next ?? 100,
+						progress_percentage: data.level.xp_progress ?? data.level.progress_percentage ?? 0,
+					}
+				}
 				commit('setStats', mapped)
 			}
 		} catch (error) {

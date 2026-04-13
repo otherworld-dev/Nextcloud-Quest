@@ -63,13 +63,9 @@ class QuestStatsController extends Controller {
             $achievementData = $this->getAchievementData($userId);
             
             // Get XP gained today from stored field (consistent with other tiles)
-            file_put_contents('/tmp/quest_debug.log', '[' . date('Y-m-d H:i:s') . '] After fix - userData keys: ' . implode(', ', array_keys($userData)) . PHP_EOL, FILE_APPEND);
-            file_put_contents('/tmp/quest_debug.log', '[' . date('Y-m-d H:i:s') . '] After fix - xp_gained_today isset: ' . (isset($userData['xp_gained_today']) ? 'true' : 'false') . ', value: ' . ($userData['xp_gained_today'] ?? 'NULL') . PHP_EOL, FILE_APPEND);
             
             $xpGainedToday = (int)($userData['xp_gained_today'] ?? 0);
             
-            error_log("QuestStats: userData xp_gained_today = " . ($userData['xp_gained_today'] ?? 'NULL') . ", final xpGainedToday = $xpGainedToday");
-            file_put_contents('/tmp/quest_debug.log', '[' . date('Y-m-d H:i:s') . '] QuestStats: userData xp_gained_today = ' . ($userData['xp_gained_today'] ?? 'NULL') . ', final xpGainedToday = ' . $xpGainedToday . PHP_EOL, FILE_APPEND);
             
             return new JSONResponse([
                 'status' => 'success',
@@ -205,7 +201,6 @@ class QuestStatsController extends Controller {
             $userData = $result->fetch();
             $result->closeCursor();
             
-            file_put_contents('/tmp/quest_debug.log', '[' . date('Y-m-d H:i:s') . '] getUnifiedUserData raw result: ' . json_encode($userData) . PHP_EOL, FILE_APPEND);
             
             if (!$userData) {
                 // Create new user with default stats
@@ -689,7 +684,6 @@ class QuestStatsController extends Controller {
             $todayStart = $today . ' 00:00:00';
             $todayEnd = $today . ' 23:59:59';
             
-            error_log("Quest: getXPGainedToday called - User: $userId, Date range: $todayStart to $todayEnd");
             
             // Sum XP gained today from ncquest_history table
             $qb = $this->db->getQueryBuilder();
@@ -704,11 +698,9 @@ class QuestStatsController extends Controller {
             $result->closeCursor();
             
             $xpTotal = (int)($row['total_xp'] ?? 0);
-            error_log("Quest: XP gained today query result: $xpTotal");
             
             return $xpTotal;
         } catch (\Exception $e) {
-            error_log('Quest: Error getting XP gained today: ' . $e->getMessage());
             return 0;
         }
     }

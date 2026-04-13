@@ -36,6 +36,11 @@
 							<span class="age-icon">{{ currentAge.icon || '\uD83E\uDEA8' }}</span>
 							<span>{{ currentAge.name || 'Stone Age' }}</span>
 						</div>
+						<div class="power-display">
+							<span class="power-icon">&#x2694;&#xFE0F;</span>
+							<span class="power-value">{{ totalPower() }}</span>
+							<span class="power-label">Power</span>
+						</div>
 						<button class="btn-customize" @click="showCustomizer = !showCustomizer">
 							{{ showCustomizer ? 'Close' : 'Customize Appearance' }}
 						</button>
@@ -207,6 +212,7 @@
 							<span class="item-rarity-label">{{ item.rarity }}</span>
 						</div>
 						<div class="item-icon">{{ item.icon || '\uD83D\uDCE6' }}</div>
+						<span class="item-power">+{{ rarityPower(item) }}</span>
 						<div class="item-name">{{ item.name }}</div>
 						<div class="item-slot-label">{{ item.slot }}</div>
 						<div class="item-footer">
@@ -362,6 +368,24 @@ export default {
 			}
 		},
 
+		rarityPower(item) {
+			const r = (item.item_rarity || item.rarity || 'common').toLowerCase()
+			return { common: 5, rare: 10, epic: 20, legendary: 40 }[r] || 0
+		},
+
+		totalPower() {
+			const base = (this.stats.level?.level || 1) * 10
+			let equip = 0
+			const eq = this.appearance
+			for (const slot of ['clothing', 'weapon', 'accessory', 'headgear']) {
+				if (eq[slot]) {
+					const item = this.allItems.find(i => i.item_key === eq[slot] || i.key === eq[slot])
+					if (item) equip += this.rarityPower(item)
+				}
+			}
+			return base + equip
+		},
+
 		getEquippedName(slot) {
 			const eq = this.appearance
 			if (eq[slot]) {
@@ -502,6 +526,28 @@ export default {
 
 .age-icon {
 	font-size: 20px;
+}
+
+.power-display {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 14px;
+	background: var(--color-background-hover);
+	border-radius: var(--radius-medium);
+	margin-top: 8px;
+}
+.power-icon { font-size: 16px; }
+.power-value { font-size: var(--font-size-large); font-weight: 700; color: var(--color-main-text); }
+.power-label { font-size: 12px; color: var(--color-text-light); }
+
+.item-power {
+	font-size: 10px;
+	font-weight: 700;
+	color: var(--color-success, #46ba61);
+	position: absolute;
+	top: 6px;
+	left: 6px;
 }
 
 .btn-customize {
@@ -837,6 +883,7 @@ export default {
 	flex-direction: column;
 	align-items: center;
 	gap: 4px;
+	position: relative;
 }
 
 .item-card:hover {

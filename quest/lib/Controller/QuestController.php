@@ -573,42 +573,32 @@ class QuestController extends Controller {
      * @return JSONResponse
      */
     public function completeTaskFromList() {
-        error_log('=== QUEST DEBUG: completeTaskFromList method called ===');
-        file_put_contents('/tmp/quest_debug.log', '[' . date('Y-m-d H:i:s') . '] completeTaskFromList called' . PHP_EOL, FILE_APPEND);
         try {
-            error_log('Quest: completeTaskFromList called');
             
             $user = $this->userSession->getUser();
             if (!$user) {
-                error_log('Quest: User not found in session');
                 throw new \Exception('User not found');
             }
             $userId = $user->getUID();
-            error_log('Quest: User ID: ' . $userId);
             
             // Get request data
             $input = json_decode(file_get_contents('php://input'), true);
-            error_log('Quest: Request input: ' . json_encode($input));
             
             $taskId = $input['task_id'] ?? null;
             $listId = $input['list_id'] ?? null;
             
             if (!$taskId || !$listId) {
-                error_log('Quest: Missing task_id or list_id');
                 return new JSONResponse([
                     'status' => 'error',
                     'message' => 'Missing task_id or list_id'
                 ], 400);
             }
             
-            error_log("Quest: Processing task $taskId from list $listId");
 
             // Mark task as completed in Tasks app
             if ($this->tasksIntegration) {
                 $taskCompleted = $this->tasksIntegration->markTaskCompleted($taskId, $userId);
-                error_log("Quest: Task completion sync to Tasks app: " . ($taskCompleted ? 'SUCCESS' : 'FAILED'));
             } else {
-                error_log("Quest: TasksIntegration not available, skipping sync to Tasks app");
             }
 
             // Calculate XP reward based on medium priority (simplified)
@@ -648,25 +638,18 @@ class QuestController extends Controller {
             
             // Record XP earned in history table for daily tracking
             $taskTitle = $input['task_title'] ?? 'Task';
-            error_log("Quest: About to call recordXPHistory - User: $userId, Task: $taskId, XP: $xpReward");
             $this->recordXPHistory($userId, $taskId, $xpReward, $taskTitle);
 
             // Update streak directly in ncquest_users table
-            error_log("Quest: Updating streak for user: $userId");
             $streakData = $this->updateStreakInUnifiedTable($userId);
-            error_log("Quest: Streak updated - current: {$streakData['current_streak']}, longest: {$streakData['longest_streak']}");
 
             // Check for new achievements (don't fail request if this errors)
             $newAchievements = [];
             try {
-                error_log("Quest: Checking achievements for user: $userId");
                 $quest = $this->questMapper->findByUserId($userId);
                 $completionTime = new \DateTime();
                 $newAchievements = $this->achievementService->checkAchievements($userId, $quest, $completionTime);
-                error_log("Quest: Found " . count($newAchievements) . " new achievements");
             } catch (\Throwable $e) {
-                error_log('Quest: Achievement check failed (non-fatal): ' . $e->getMessage());
-                error_log('Quest: Achievement check stack trace: ' . $e->getTraceAsString());
                 // Continue processing task completion even if achievements fail
             }
 
@@ -678,7 +661,6 @@ class QuestController extends Controller {
                 }
                 $completedEpics = $this->epicService->onTaskCompleted($userId, (string)$taskId, (string)$listId, $xpReward);
             } catch (\Throwable $e) {
-                error_log('Quest: Epic check failed (non-fatal): ' . $e->getMessage());
             }
 
             // Get updated data from database including task counts
@@ -760,7 +742,6 @@ class QuestController extends Controller {
                 }
                 $journeyEncounter = $this->journeyService->onTaskCompleted($userId, $xpReward);
             } catch (\Throwable $e) {
-                error_log('Quest: Journey check failed (non-fatal): ' . $e->getMessage());
             }
             $responseData['journey_encounter'] = $journeyEncounter;
 
@@ -772,7 +753,6 @@ class QuestController extends Controller {
                 $priority = $input['priority'] ?? 'medium';
                 $completedChallenges = $challengeService->onTaskCompleted($userId, $priority, $hour);
             } catch (\Throwable $e) {
-                error_log('Quest: Challenge check failed (non-fatal): ' . $e->getMessage());
             }
             $responseData['completed_challenges'] = $completedChallenges;
 
@@ -783,8 +763,6 @@ class QuestController extends Controller {
             ]);
             
         } catch (\Throwable $e) {
-            error_log('Quest: Fatal error in completeTaskFromList: ' . $e->getMessage());
-            error_log('Quest: Stack trace: ' . $e->getTraceAsString());
             return new JSONResponse([
                 'status' => 'error',
                 'message' => 'An error occurred while completing the task: ' . $e->getMessage()
@@ -847,7 +825,6 @@ class QuestController extends Controller {
                 ];
             }
         } catch (\Exception $e) {
-            error_log('Quest: Error getting simple user data: ' . $e->getMessage());
         }
         
         return ['xp' => 0, 'level' => 1];
@@ -870,7 +847,6 @@ class QuestController extends Controller {
             $userData = $result->fetch();
             $result->closeCursor();
             
-            file_put_contents('/tmp/quest_debug.log', '[' . date('Y-m-d H:i:s') . '] Database query result: ' . json_encode($userData) . PHP_EOL, FILE_APPEND);
             
             if ($userData) {
                 // Check if we need to reset daily counters
@@ -888,13 +864,7 @@ class QuestController extends Controller {
                 $newCurrentHealth = $currentHealth !== null ? max(0, min($currentHealth, $maxHealth ?? 100)) : (int)($userData['current_health'] ?? 100);
                 $newMaxHealth = $maxHealth !== null ? $maxHealth : (int)($userData['max_health'] ?? 100);
 
-                error_log("Quest: XP update calculation - needsDailyReset: " . ($needsDailyReset ? 'true' : 'false'));
-                error_log("Quest: XP update calculation - current xp_gained_today: " . ($userData['xp_gained_today'] ?? 'NULL'));
-                error_log("Quest: XP update calculation - xpEarned: $xpEarned");
-                error_log("Quest: XP update calculation - new xpToday: $xpToday");
-                error_log("Quest: Health update - new health: $newCurrentHealth / $newMaxHealth");
 
-                file_put_contents('/tmp/quest_debug.log', '[' . date('Y-m-d H:i:s') . '] XP calculation - needsDailyReset: ' . ($needsDailyReset ? 'true' : 'false') . ', current_xp_gained_today: ' . ($userData['xp_gained_today'] ?? 'NULL') . ', xpEarned: ' . $xpEarned . ', new_xpToday: ' . $xpToday . PHP_EOL, FILE_APPEND);
 
                 // Update existing user (including health)
                 $qb = $db->getQueryBuilder();
@@ -939,7 +909,6 @@ class QuestController extends Controller {
                 return ['status' => 'success', 'operation' => 'insert'];
             }
         } catch (\Exception $e) {
-            error_log('Quest: Error updating simple user XP: ' . $e->getMessage());
             return ['status' => 'failed', 'message' => $e->getMessage()];
         }
     }
@@ -1025,7 +994,6 @@ class QuestController extends Controller {
             ];
 
         } catch (\Exception $e) {
-            error_log("Quest: Error getting task counts: " . $e->getMessage());
             return [
                 'tasks_today' => 0,
                 'tasks_this_week' => 0,
@@ -1099,7 +1067,6 @@ class QuestController extends Controller {
             ];
 
         } catch (\Exception $e) {
-            error_log("Quest: Error updating streak: " . $e->getMessage());
             return [
                 'current_streak' => 0,
                 'longest_streak' => 0
@@ -1231,10 +1198,7 @@ class QuestController extends Controller {
                 ]);
             
             $result = $qb->executeStatement();
-            error_log("Quest: XP history insert successful - Affected rows: $result");
         } catch (\Exception $e) {
-            error_log('Quest: Error recording XP history: ' . $e->getMessage());
-            error_log('Quest: Stack trace: ' . $e->getTraceAsString());
         }
     }
 }

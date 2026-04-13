@@ -1,12 +1,15 @@
 <template>
-	<div id="nextcloud-quest-wrapper" class="quest-wrapper" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
-		<AppSidebar :collapsed="sidebarCollapsed" @toggle="sidebarCollapsed = !sidebarCollapsed" />
+	<div id="nextcloud-quest-wrapper" class="quest-wrapper" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'sidebar-mobile-open': mobileMenuOpen }">
+		<AppSidebar :collapsed="sidebarCollapsed" :class="{ open: mobileMenuOpen }" @toggle="toggleSidebar" />
 
 		<main class="quest-main">
+			<button class="mobile-menu-btn" @click="mobileMenuOpen = true">☰</button>
 			<div class="main-container">
 				<component :is="pageComponent" />
 			</div>
 		</main>
+
+		<div v-if="mobileMenuOpen" class="mobile-overlay" @click="mobileMenuOpen = false" />
 
 		<NotificationStack />
 	</div>
@@ -55,7 +58,18 @@ export default {
 	data() {
 		return {
 			sidebarCollapsed: false,
+			mobileMenuOpen: false,
 		}
+	},
+
+	methods: {
+		toggleSidebar() {
+			if (window.innerWidth <= 768) {
+				this.mobileMenuOpen = !this.mobileMenuOpen
+			} else {
+				this.sidebarCollapsed = !this.sidebarCollapsed
+			}
+		},
 	},
 
 	computed: {
@@ -90,5 +104,46 @@ export default {
 
 .main-container {
 	padding: var(--container-padding);
+}
+
+.mobile-menu-btn {
+	display: none;
+}
+
+.mobile-overlay {
+	display: none;
+}
+
+@media (max-width: 768px) {
+	.quest-main {
+		margin-left: 0;
+	}
+
+	.sidebar-collapsed .quest-main {
+		margin-left: 0;
+	}
+
+	.mobile-menu-btn {
+		display: block;
+		position: fixed;
+		top: calc(var(--header-height, 50px) + 8px);
+		left: 8px;
+		z-index: calc(var(--z-sidebar) - 1);
+		background: var(--color-main-background);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-medium);
+		padding: 6px 10px;
+		font-size: 18px;
+		cursor: pointer;
+		box-shadow: var(--shadow-md);
+	}
+
+	.mobile-overlay {
+		display: block;
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.5);
+		z-index: calc(var(--z-sidebar) - 1);
+	}
 }
 </style>
