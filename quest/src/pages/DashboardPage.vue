@@ -11,12 +11,24 @@
 
 		<!-- Stat cards -->
 		<section class="stats-grid">
-			<StatCard :icon="icons.level" label="Level" :value="stats.level.level" :subtitle="stats.level.rank_title" />
-			<StatCard :icon="icons.xp" label="Total XP" :value="stats.level.lifetime_xp" subtitle="lifetime" />
-			<StatCard :icon="icons.streak" label="Streak" :value="stats.streak.current_streak" subtitle="days" />
-			<StatCard :icon="icons.tasks" label="Tasks Today" :value="stats.tasks_today || 0" subtitle="completed" />
-			<StatCard :icon="icons.week" label="This Week" :value="stats.tasks_this_week || 0" subtitle="completed" />
-			<StatCard :icon="icons.achievements" label="Achievements" :value="achievementSummary" :subtitle="achievementSubtitle" />
+			<Tooltip text="Your character level. Earn XP by completing tasks to level up and unlock new ages.">
+				<StatCard :icon="icons.level" label="Level" :value="stats.level.level" :subtitle="stats.level.rank_title" />
+			</Tooltip>
+			<Tooltip text="Total experience points earned across all time. XP comes from tasks, journey encounters, and challenges.">
+				<StatCard :icon="icons.xp" label="Total XP" :value="stats.level.lifetime_xp" subtitle="lifetime" />
+			</Tooltip>
+			<Tooltip text="Consecutive days with at least one task completed. Longer streaks boost your XP multiplier.">
+				<StatCard :icon="icons.streak" label="Streak" :value="stats.streak.current_streak" subtitle="days" />
+			</Tooltip>
+			<Tooltip text="Tasks completed today. Complete more to progress challenges and trigger journey encounters.">
+				<StatCard :icon="icons.tasks" label="Tasks Today" :value="stats.tasks_today || 0" subtitle="completed" />
+			</Tooltip>
+			<Tooltip text="Tasks completed this week (Monday to Sunday).">
+				<StatCard :icon="icons.week" label="This Week" :value="stats.tasks_this_week || 0" subtitle="completed" />
+			</Tooltip>
+			<Tooltip text="Achievements unlocked out of 946 total across 19 categories.">
+				<StatCard :icon="icons.achievements" label="Achievements" :value="achievementSummary" :subtitle="achievementSubtitle" />
+			</Tooltip>
 		</section>
 
 		<!-- Two-column layout: tasks (primary) + sidebar (secondary) -->
@@ -189,12 +201,13 @@ import { mapState, mapActions, mapGetters } from 'vuex'
 import { generateFilePath } from '@nextcloud/router'
 import { soundTaskComplete } from '../services/audio'
 import StatCard from '../components/StatCard.vue'
+import Tooltip from '../components/Tooltip.vue'
 import WelcomeBanner from '../components/WelcomeBanner.vue'
 
 export default {
 	name: 'DashboardPage',
 
-	components: { StatCard, WelcomeBanner },
+	components: { StatCard, Tooltip, WelcomeBanner },
 
 	data() {
 		return {

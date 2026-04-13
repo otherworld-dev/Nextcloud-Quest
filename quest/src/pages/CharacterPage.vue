@@ -38,11 +38,13 @@
 							<span class="age-icon">{{ currentAge.icon || '\uD83E\uDEA8' }}</span>
 							<span>{{ currentAge.name || 'Stone Age' }}</span>
 						</div>
+						<Tooltip text="Power = Level × 10 + equipment rarity bonuses (Common +5, Rare +10, Epic +20, Legendary +40). Affects battle win chance." position="right">
 						<div class="power-display">
 							<span class="power-icon">&#x2694;&#xFE0F;</span>
 							<span class="power-value">{{ totalPower() }}</span>
 							<span class="power-label">Power</span>
 						</div>
+					</Tooltip>
 						<button class="btn-customize" @click="showCustomizer = !showCustomizer">
 							{{ showCustomizer ? 'Close' : 'Customize Appearance' }}
 						</button>
@@ -265,10 +267,11 @@
 import { mapState, mapActions } from 'vuex'
 import { generateFilePath } from '@nextcloud/router'
 import PixelAvatar from '../components/PixelAvatar.vue'
+import Tooltip from '../components/Tooltip.vue'
 
 export default {
 	name: 'CharacterPage',
-	components: { PixelAvatar },
+	components: { PixelAvatar, Tooltip },
 
 	data() {
 		return {

@@ -31,17 +31,27 @@
 						/>
 					</div>
 				</div>
-				<div class="power-badge">
-					Power: {{ journey.player_power || 0 }}
-				</div>
+				<Tooltip text="Power = Level × 10 + equipment bonuses. Higher power means better battle win chance." position="left">
+					<div class="power-badge">
+						Power: {{ journey.player_power || 0 }}
+					</div>
+				</Tooltip>
 			</section>
 
 			<!-- Stats -->
 			<section class="stats-row">
-				<StatCard :icon="icons.battle" label="Battles Won" :value="journey.battles_won || 0" :subtitle="(journey.battles_lost || 0) + ' lost'" />
-				<StatCard :icon="icons.treasure" label="Treasures" :value="journey.treasures_found || 0" subtitle="found" />
-				<StatCard :icon="icons.boss" label="Bosses" :value="journey.bosses_defeated || 0" subtitle="defeated" />
-				<StatCard :icon="icons.encounters" label="Encounters" :value="journey.encounters_completed || 0" subtitle="total" />
+				<Tooltip text="Battles are fought automatically based on your Power rating vs enemy strength.">
+					<StatCard :icon="icons.battle" label="Battles Won" :value="journey.battles_won || 0" :subtitle="(journey.battles_lost || 0) + ' lost'" />
+				</Tooltip>
+				<Tooltip text="Items found from treasure encounters and battle victories. Equip them to boost Power.">
+					<StatCard :icon="icons.treasure" label="Treasures" :value="journey.treasures_found || 0" subtitle="found" />
+				</Tooltip>
+				<Tooltip text="Bosses appear every 20 encounters. Defeat all 9 age bosses to reach Prestige.">
+					<StatCard :icon="icons.boss" label="Bosses" :value="journey.bosses_defeated || 0" subtitle="defeated" />
+				</Tooltip>
+				<Tooltip text="Total encounters triggered. Every 3 task completions triggers a new encounter.">
+					<StatCard :icon="icons.encounters" label="Encounters" :value="journey.encounters_completed || 0" subtitle="total" />
+				</Tooltip>
 			</section>
 
 			<!-- Encounter history -->
@@ -100,10 +110,11 @@
 <script>
 import { mapState, mapActions } from 'vuex'
 import StatCard from '../components/StatCard.vue'
+import Tooltip from '../components/Tooltip.vue'
 
 export default {
 	name: 'AdventurePage',
-	components: { StatCard },
+	components: { StatCard, Tooltip },
 
 	data() {
 		return {

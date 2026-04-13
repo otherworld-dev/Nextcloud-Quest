@@ -42,34 +42,40 @@
 
 				<!-- Gauges -->
 				<div class="character-gauges">
-					<div class="gauge">
-						<div class="gauge-header">
-							<span class="gauge-label">Lv. {{ stats.level.level }}</span>
-							<span class="gauge-value">{{ Math.round(stats.level.progress_percentage || 0) }}%</span>
+					<Tooltip text="Complete tasks to earn XP and level up. Higher levels unlock new ages and equipment." position="right">
+						<div class="gauge">
+							<div class="gauge-header">
+								<span class="gauge-label">Lv. {{ stats.level.level }}</span>
+								<span class="gauge-value">{{ Math.round(stats.level.progress_percentage || 0) }}%</span>
+							</div>
+							<div class="gauge-bar">
+								<div class="gauge-fill xp" :style="{ width: xpPercentage + '%' }" />
+							</div>
 						</div>
-						<div class="gauge-bar">
-							<div class="gauge-fill xp" :style="{ width: xpPercentage + '%' }" />
-						</div>
-					</div>
+					</Tooltip>
 
-					<div class="gauge">
-						<div class="gauge-header">
-							<span class="gauge-label">Health</span>
-							<span class="gauge-value">{{ stats.health.current_health }}/{{ stats.health.max_health }}</span>
+					<Tooltip text="Health drops when you lose battles or miss deadlines. Regenerates when you complete tasks." position="right">
+						<div class="gauge">
+							<div class="gauge-header">
+								<span class="gauge-label">Health</span>
+								<span class="gauge-value">{{ stats.health.current_health }}/{{ stats.health.max_health }}</span>
+							</div>
+							<div class="gauge-bar">
+								<div class="gauge-fill health" :style="{ width: healthPercentage + '%' }" />
+							</div>
 						</div>
-						<div class="gauge-bar">
-							<div class="gauge-fill health" :style="{ width: healthPercentage + '%' }" />
-						</div>
-					</div>
+					</Tooltip>
 
-					<div class="gauge streak">
-						<div class="gauge-header">
-							<span class="gauge-label">Streak</span>
-							<span class="gauge-value streak-value" :class="{ active: stats.streak.is_active_today }">
-								{{ stats.streak.current_streak }} days
-							</span>
+					<Tooltip text="Complete at least one task per day to maintain your streak. Longer streaks boost XP multipliers." position="right">
+						<div class="gauge streak">
+							<div class="gauge-header">
+								<span class="gauge-label">Streak</span>
+								<span class="gauge-value streak-value" :class="{ active: stats.streak.is_active_today }">
+									{{ stats.streak.current_streak }} days
+								</span>
+							</div>
 						</div>
-					</div>
+					</Tooltip>
 				</div>
 			</template>
 		</div>
@@ -106,11 +112,12 @@ import { mapState, mapGetters } from 'vuex'
 import { generateFilePath, generateUrl } from '@nextcloud/router'
 import { isSoundEnabled, setSoundEnabled } from '../services/audio'
 import PixelAvatar from './PixelAvatar.vue'
+import Tooltip from './Tooltip.vue'
 
 export default {
 	name: 'AppSidebar',
 
-	components: { PixelAvatar },
+	components: { PixelAvatar, Tooltip },
 
 	props: {
 		collapsed: {
