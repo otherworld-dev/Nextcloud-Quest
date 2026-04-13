@@ -36,6 +36,10 @@ store.commit('quest/setActivePage', config.active_page || 'dashboard')
 store.dispatch('quest/loadStats')
 store.dispatch('quest/loadAvatar')
 
+// Register keyboard shortcuts
+import { registerShortcuts } from './services/shortcuts'
+registerShortcuts(store)
+
 // Restore sound preference
 import { setSoundEnabled } from './services/audio'
 const soundPref = localStorage.getItem('quest-sound-enabled')
