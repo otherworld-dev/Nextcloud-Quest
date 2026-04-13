@@ -155,7 +155,8 @@
 						:class="{ filled: getEquippedName(slot.key) }"
 					>
 						<div class="slot-visual">
-							<span class="slot-emoji">{{ slot.icon }}</span>
+							<img v-if="getEquippedSprite(slot.key)" :src="spriteUrl(getEquippedSprite(slot.key))" class="slot-sprite">
+							<span v-else class="slot-emoji">{{ slot.icon }}</span>
 						</div>
 						<div class="slot-info">
 							<span class="slot-label">{{ slot.label }}</span>
@@ -211,7 +212,8 @@
 							<span class="item-rarity-dot" :class="item.rarity" />
 							<span class="item-rarity-label">{{ item.rarity }}</span>
 						</div>
-						<div class="item-icon">{{ item.icon || '\uD83D\uDCE6' }}</div>
+						<img v-if="item.sprite_path" :src="spriteUrl(item.sprite_path)" :alt="item.item_name || item.name" class="item-sprite">
+						<div v-else class="item-icon">📦</div>
 						<span class="item-power">+{{ rarityPower(item) }}</span>
 						<div class="item-name">{{ item.name }}</div>
 						<div class="item-slot-label">{{ item.slot }}</div>
@@ -241,6 +243,7 @@
 
 <script>
 import { mapState, mapActions } from 'vuex'
+import { generateFilePath } from '@nextcloud/router'
 import PixelAvatar from '../components/PixelAvatar.vue'
 
 export default {
@@ -368,6 +371,10 @@ export default {
 			}
 		},
 
+		spriteUrl(path) {
+			return generateFilePath('quest', '', 'img/' + path)
+		},
+
 		rarityPower(item) {
 			const r = (item.item_rarity || item.rarity || 'common').toLowerCase()
 			return { common: 5, rare: 10, epic: 20, legendary: 40 }[r] || 0
@@ -384,6 +391,15 @@ export default {
 				}
 			}
 			return base + equip
+		},
+
+		getEquippedSprite(slot) {
+			const eq = this.appearance
+			if (eq[slot]) {
+				const item = this.allItems.find(i => i.item_key === eq[slot] || i.key === eq[slot])
+				return item?.sprite_path || null
+			}
+			return null
 		},
 
 		getEquippedName(slot) {
@@ -772,6 +788,12 @@ export default {
 	flex-shrink: 0;
 }
 
+.slot-sprite {
+	width: 32px;
+	height: 32px;
+	object-fit: contain;
+}
+
 .slot-info {
 	flex: 1;
 	min-width: 0;
@@ -929,6 +951,12 @@ export default {
 	font-weight: 700;
 	color: var(--color-text-light);
 	letter-spacing: 0.3px;
+}
+
+.item-sprite {
+	width: 40px;
+	height: 40px;
+	object-fit: contain;
 }
 
 .item-icon {
