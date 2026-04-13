@@ -13,6 +13,7 @@ return [
         ['name' => 'page#quests', 'url' => '/quests', 'verb' => 'GET'],
         ['name' => 'page#achievements', 'url' => '/achievements', 'verb' => 'GET'],
         ['name' => 'page#character', 'url' => '/character', 'verb' => 'GET'],
+        ['name' => 'page#activity', 'url' => '/activity', 'verb' => 'GET'],
         ['name' => 'page#leaderboard', 'url' => '/leaderboard', 'verb' => 'GET'],
         ['name' => 'page#settings', 'url' => '/settings', 'verb' => 'GET'],
         
@@ -89,6 +90,9 @@ return [
         ['name' => 'adventureWorld#getBossChallenge', 'url' => '/api/adventure/boss-challenge/{worldNumber}', 'verb' => 'GET'],
         ['name' => 'adventureWorld#completeBoss', 'url' => '/api/adventure/complete-boss/{worldNumber}', 'verb' => 'POST'],
         ['name' => 'adventureWorld#getProgress', 'url' => '/api/adventure-old/progress', 'verb' => 'GET'],
+
+        // Activity feed
+        ['name' => 'activity#getFeed', 'url' => '/api/activity/feed', 'verb' => 'GET'],
 
         // Challenge endpoints
         ['name' => 'challenge#getChallenges', 'url' => '/api/challenges', 'verb' => 'GET'],

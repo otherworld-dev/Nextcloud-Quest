@@ -647,8 +647,9 @@ class QuestController extends Controller {
             $updateResult = $this->updateSimpleUserXP($userId, $newXP, $newLevel, $xpReward, $newHealth, $maxHealth);
             
             // Record XP earned in history table for daily tracking
+            $taskTitle = $input['task_title'] ?? 'Task';
             error_log("Quest: About to call recordXPHistory - User: $userId, Task: $taskId, XP: $xpReward");
-            $this->recordXPHistory($userId, $taskId, $xpReward);
+            $this->recordXPHistory($userId, $taskId, $xpReward, $taskTitle);
 
             // Update streak directly in ncquest_users table
             error_log("Quest: Updating streak for user: $userId");
@@ -1215,17 +1216,16 @@ class QuestController extends Controller {
     /**
      * Record XP earned in ncquest_history table for daily tracking
      */
-    private function recordXPHistory(string $userId, string $taskId, int $xpEarned): void {
-        error_log("Quest: recordXPHistory called - User: $userId, Task: $taskId, XP: $xpEarned");
+    private function recordXPHistory(string $userId, string $taskId, int $xpEarned, string $taskTitle = 'Task'): void {
         try {
             $db = \OC::$server->get(\OCP\IDBConnection::class);
             $qb = $db->getQueryBuilder();
-            
+
             $qb->insert('ncquest_history')
                 ->values([
                     'user_id' => $qb->createNamedParameter($userId),
                     'task_id' => $qb->createNamedParameter($taskId),
-                    'task_title' => $qb->createNamedParameter('Manual Task'),
+                    'task_title' => $qb->createNamedParameter($taskTitle),
                     'xp_earned' => $qb->createNamedParameter($xpEarned, \PDO::PARAM_INT),
                     'completed_at' => $qb->createNamedParameter(date('Y-m-d H:i:s'))
                 ]);

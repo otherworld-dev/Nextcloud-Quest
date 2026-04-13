@@ -187,6 +187,15 @@ class QuestAPI {
 		return data
 	}
 
+	// ─── Activity ────────────────────────────────────────────
+
+	async getActivityFeed(limit = 30, offset = 0) {
+		const { data } = await axios.get(`${this.baseURL}/activity/feed`, {
+			params: { limit, offset },
+		})
+		return data
+	}
+
 	// ─── Challenges ──────────────────────────────────────────
 
 	async getChallenges() {
