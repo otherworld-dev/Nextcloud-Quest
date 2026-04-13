@@ -2,7 +2,7 @@
 	<div class="notification-stack">
 		<transition-group name="notification" tag="div">
 			<div
-				v-for="notif in notifications"
+				v-for="notif in visibleNotifications"
 				:key="notif.id"
 				class="notification-toast"
 				:class="notif.type"
@@ -43,21 +43,32 @@ export default {
 
 	computed: {
 		...mapState('quest', ['notifications']),
+
+		visibleNotifications() {
+			return this.notifications.slice(-5)
+		},
 	},
 
-	watch: {
-		notifications(newVal, oldVal) {
-			if (newVal.length > oldVal.length) {
-				const latest = newVal[newVal.length - 1]
-				const delay = latest.type === 'xp_gain' ? 2500 : 4000
-				setTimeout(() => {
-					this.dismissNotification(latest.id)
-				}, delay)
+	mounted() {
+		// Poll for new notifications and auto-dismiss
+		this._seen = new Set()
+		this._interval = setInterval(() => {
+			this.notifications.forEach(notif => {
+				if (!this._seen.has(notif.id)) {
+					this._seen.add(notif.id)
+					this.playSound(notif.type)
+					const delay = notif.type === 'xp_gain' ? 2500 : 4000
+					setTimeout(() => {
+						this.$store.commit('quest/dismissNotification', notif.id)
+						this._seen.delete(notif.id)
+					}, delay)
+				}
+			})
+		}, 200)
+	},
 
-				// Play sound effect
-				this.playSound(latest.type)
-			}
-		},
+	beforeDestroy() {
+		if (this._interval) clearInterval(this._interval)
 	},
 
 	methods: {
