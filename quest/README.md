@@ -1,180 +1,89 @@
-# Quest
+# Quest for Nextcloud
 
-**Transform your task management into an engaging game!**
+Turn your task management into an RPG adventure. Quest gamifies Nextcloud task completion with XP, levels, achievements, equipment, and procedurally generated encounters.
 
-Quest is a gamification extension for Nextcloud Tasks that helps users overcome procrastination by turning task completion into an RPG-like experience. Earn XP, level up, maintain streaks, and unlock achievements as you complete your daily tasks.
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/P5P31KQRF1)
 
-## ✨ Features
+![Quest Dashboard](screenshots/readme%20screenshot.png)
 
-### 🎮 Core Gamification
-- **XP & Levels**: Earn experience points for completing tasks with exponential level progression
-- **Achievements**: Unlock 17 different badges for milestones and special accomplishments  
-- **Streaks**: Build and maintain daily completion streaks with multiplier bonuses
-- **Leaderboards**: Compare your progress with other users (optional)
+## Features
 
-### 📊 Progress Tracking
-- **Visual Progress Bars**: See your XP progress to the next level
-- **Statistics Dashboard**: Detailed completion trends and analytics
-- **Activity History**: Track all your completed tasks and XP earned
-- **Streak Calendar**: Visual representation of your daily activity
+### Core Progression
+- **XP & Levels** — earn experience from task completions, level up through 100+ levels across 9 historical ages (Stone Age to Space Age)
+- **1000 Achievements** across 19 categories with rarity tiers (Common, Rare, Epic, Legendary, Mythic)
+- **Daily Streaks** with XP multiplier bonuses
+- **Health System** with regeneration on task completion and penalties for overdue tasks
 
-### 🎨 Themes & Customization
-- **Professional Theme**: Clean, minimal interface for work environments
-- **Game Theme**: Colorful, engaging interface with animations and effects
-- **User Settings**: Customize notifications, display options, and privacy settings
+### Epic Quest System
+- Group tasks into **Epics** — collections with bonus XP on completion
+- Dynamic rewards: more tasks + longer duration = bigger XP payout
+- Tier system: Common, Uncommon, Rare, Epic, Legendary
 
-### 🔔 Smart Notifications
-- **Achievement Unlocks**: Celebrate your accomplishments with animated notifications
-- **Level Up Alerts**: Special celebrations when you reach new levels
-- **Streak Reminders**: Get notified before your streak expires
-- **Daily Summaries**: Optional daily progress reports
+### Journey Adventure
+- Passive auto-adventure triggered every 3 task completions
+- **108 enemies**, 9 bosses, 9 mini-bosses across 9 ages
+- **72 story events** with narrative text
+- Loot drops and equipment affecting combat power
+- Prestige system for endless progression
 
-## 🚀 Installation
+### Character System
+- **Pixel art avatar** with customizable appearance (6 skin tones, 8 hair styles, 8 hair colors)
+- **121 equipment items** with unique SVG sprites visible on avatar
+- 4 equipment slots: clothing, weapon, accessory, headgear
+- **Item crafting** — combine 3 copies to forge higher rarity
 
-### Requirements
-- Nextcloud 31.0+ 
-- PHP 8.3+
-- Nextcloud Tasks app (recommended but not required)
+### Daily & Weekly Challenges
+- 23 auto-generated challenge templates rotating daily/weekly
+- Time-limited goals with bonus XP rewards (Power Hour, Morning Sprint, Weekday Warrior, etc.)
 
-### From the App Store
-1. Go to your Nextcloud Apps section
-2. Search for "Quest"
-3. Click Install
-4. Enable the app
+### Social & Tracking
+- **Leaderboard** with sortable rankings (XP, Level, Streak, Tasks)
+- **Activity feed** combining tasks, encounters, achievements, and challenges
+- **Sound effects** for all key moments (synthesized, no audio files)
+- **Tooltips** explaining game mechanics
+- **Keyboard shortcuts** (Alt+D/Q/A/C/J/L/F/S, ? for help)
+
+### Settings
+- Task list selection and filtering
+- Display, notification, gameplay, and privacy preferences
+- Data export, backup, and reset
+
+## Requirements
+
+- Nextcloud 28–34
+- PHP 8.1+
+- Node.js 20+ (for building)
+
+## Installation
+
+### From Nextcloud App Store
+Search for "Quest" in your Nextcloud app store and install.
 
 ### Manual Installation
-1. Download the latest release from [GitHub Releases](https://github.com/nextcloud/nextcloud-quest/releases)
-2. Extract to your Nextcloud `apps/` directory
-3. Run: `sudo -u www-data php occ app:enable nextcloudquest`
-4. Access via the Quest icon in your Nextcloud navigation
-
-### Development Setup
 ```bash
-# Clone the repository
-git clone https://github.com/nextcloud/nextcloud-quest.git
-cd nextcloud-quest
+# Clone into your Nextcloud apps directory
+cd /path/to/nextcloud/apps
+git clone https://github.com/otherworld-dev/Nextcloud-Quest.git quest
 
 # Install dependencies
-composer install
-npm install
+cd quest
+composer install --no-dev
+npm ci
 
-# Build frontend assets
+# Build frontend
 npm run build
 
 # Enable the app
-sudo -u www-data php occ app:enable nextcloudquest
+sudo -u www-data php /path/to/nextcloud/occ app:enable quest
 ```
 
-## 📖 Usage
+## Development
 
-### Getting Started
-1. Install and enable Quest
-2. Navigate to the Quest app from your Nextcloud navigation
-3. Complete your first task to start earning XP!
-
-### Task Completion Methods
-
-#### With Nextcloud Tasks (Recommended)
-- Tasks completed in the Nextcloud Tasks app automatically award XP
-- Priority levels determine bonus XP (High = +10, Medium = +5, Low = +0)
-
-#### Manual Task Entry
-- Use the "Complete Task" button in the Quest dashboard
-- Enter task description and select priority
-- XP is calculated and awarded instantly
-
-### XP Calculation
-```
-Base XP: 10
-Priority Bonus: 0-10 (based on task priority)
-Streak Multiplier: 1.0x to 2.0x (10% per consecutive day, capped at 2x)
-Total XP = (Base XP + Priority Bonus) × Streak Multiplier
-```
-
-### Level Progression
-- **Level 1**: 0 XP
-- **Level 2**: 100 XP  
-- **Level 3**: 250 XP
-- **Level 4**: 475 XP
-- And so on... (exponential growth using `100 * 1.5^(level-1)`)
-
-### Achievement System
-Unlock achievements for various milestones:
-
-**Getting Started**
-- First Step: Complete your first task
-- Task Initiator: Complete 10 tasks
-
-**Consistency** 
-- Week Warrior: 7-day streak
-- Monthly Master: 30-day streak
-- Century Champion: 100-day streak
-
-**Milestones**
-- Rising Star: Reach level 5
-- Quest Expert: Reach level 25
-- Task Legend: Complete 1000 tasks
-
-**Special**
-- Perfect Day: Complete all scheduled tasks in a day
-- Early Bird: Complete task before 9 AM
-- Night Owl: Complete task after 9 PM
-- Speed Demon: Complete 5 tasks in one hour
-
-## ⚙️ Configuration
-
-### User Settings
-Access via the Quest dashboard settings:
-
-**Theme Preferences**
-- Professional: Clean, minimal interface
-- Game: Colorful with animations and effects
-
-**Notifications**
-- Achievement unlocks
-- Level up celebrations  
-- Streak reminders
-- Daily summary reports
-
-**Display Options**
-- Show XP gain popups
-- Show streak counter
-- Show level progress
-- Compact view mode
-
-**Privacy**
-- Show on leaderboard
-- Anonymous leaderboard display
-
-### Admin Configuration
-No special admin configuration required. The app works out of the box with sensible defaults.
-
-## 🛠️ Development
-
-### Architecture
-- **Frontend**: Vue.js 2 with Vuex for state management
-- **Backend**: PHP using Nextcloud's app framework
-- **Database**: MySQL/PostgreSQL using Nextcloud's query builder
-- **Styling**: SCSS with Nextcloud design system
-
-### Key Components
-```
-lib/
-├── Controller/         # API endpoints
-├── Service/           # Business logic (XP, Achievements, Streaks)
-├── Db/               # Database entities and mappers  
-├── Integration/       # Tasks app integration
-├── BackgroundJob/     # Maintenance tasks
-└── Notification/      # Notification system
-
-src/
-├── components/        # Vue.js components
-├── store/            # Vuex state management
-└── services/         # API communication
-```
-
-### Building
 ```bash
+# Install all dependencies
+composer install
+npm ci
+
 # Development build with watch
 npm run dev
 
@@ -183,100 +92,39 @@ npm run build
 
 # Linting
 npm run lint
-composer run cs:check
+npm run stylelint
 
-# Testing  
-composer run test:unit
+# PHP code style
+composer run cs:check
+composer run cs:fix
 ```
 
-### Database Schema
-The app creates three main tables:
-- `nextcloud_quest_users`: User progress (XP, level, streaks)
-- `nextcloud_quest_achievements`: Unlocked achievements
-- `nextcloud_quest_history`: Task completion history
+## Architecture
 
-## 🤝 Contributing
+### Backend (PHP)
+- **Service Layer** — XPService, AchievementService, CharacterService, EpicService, JourneyService, ChallengeService
+- **Controllers** — QuestController, CharacterController, EpicController, JourneyController, ChallengeController, ActivityController, SettingsController
+- **Database** — 21 migrations, entity/mapper pattern with Nextcloud's QueryBuilder
+- **Integration** — CalDAV via TasksApiIntegration for Nextcloud Tasks
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+### Frontend (Vue.js)
+- **Vue 2.7** with Vuex store, client-side routing
+- **8 pages** — Dashboard, Epics, Achievements, Character, Adventure, Activity, Leaderboard, Settings
+- **8 components** — AppSidebar, PixelAvatar, StatCard, EpicCard, CreateEpicModal, NotificationStack, WelcomeBanner, Tooltip
+- **Services** — API client, audio (Web Audio API), keyboard shortcuts
 
-### Development Workflow
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes with tests
-4. Run linting and tests (`make ci`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to your branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+### Content
+- 1000 achievements across 19 categories
+- 121 equipment items with SVG sprites across 9 ages
+- 108 enemies + 18 bosses/mini-bosses
+- 72 story events
+- 23 challenge templates
+- 110 achievement icons
 
-### Code Standards
-- PSR-12 for PHP code
-- ESLint configuration for JavaScript/Vue
-- Comprehensive PHPDoc comments
-- Unit tests for business logic
+## Task Integration
 
-## 🐛 Troubleshooting
+Quest integrates with Nextcloud's CalDAV system. Any calendar with VTODO support appears as a task list. Tasks can be created and completed directly from the Quest dashboard.
 
-### Common Issues
+## License
 
-**Quest app not showing XP for completed tasks**
-- Ensure the Tasks app is installed and working
-- Check that tasks are marked as "completed" not just "done"
-- Verify the Quest app has proper database permissions
-
-**Streaks not updating correctly**
-- Streaks reset at midnight in your server's timezone
-- You have until midnight the next day (grace period) to maintain streaks
-- Check background jobs are running (`occ background:cron`)
-
-**Achievements not unlocking**
-- Achievement checking runs when tasks are completed
-- Some achievements require specific conditions (time of day, etc.)
-- Check the notification settings if you're missing unlock notifications
-
-**Performance issues**
-- The app is optimized for thousands of tasks and users
-- Database queries use proper indexing
-- Background jobs handle maintenance tasks efficiently
-
-### Getting Help
-- Check the [FAQ](https://github.com/nextcloud/nextcloud-quest/wiki/FAQ)
-- Search [existing issues](https://github.com/nextcloud/nextcloud-quest/issues)
-- Create a [new issue](https://github.com/nextcloud/nextcloud-quest/issues/new) with:
-  - Nextcloud version
-  - PHP version  
-  - Browser and version
-  - Steps to reproduce
-  - Error logs (if any)
-
-## 📄 License
-
-This project is licensed under the GNU AGPL v3.0 License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Nextcloud team for the excellent app framework
-- Tasks app developers for integration inspiration  
-- Vue.js community for frontend components
-- All contributors and beta testers
-
-## 🗺️ Roadmap
-
-### Version 1.1 (Planned)
-- [ ] Deck app integration
-- [ ] Custom avatars and badges
-- [ ] Team/group challenges
-- [ ] Export/import progress data
-
-### Version 1.2 (Future)
-- [ ] Pomodoro timer integration
-- [ ] Daily/weekly challenges
-- [ ] Reward shop for spending XP
-- [ ] Advanced analytics and insights
-
----
-
-**Start your quest today and turn productivity into an adventure!** 🚀
-
----
-
-*Made with ❤️ by the Quest team*
+AGPL-3.0 — see [COPYING](COPYING) for details.

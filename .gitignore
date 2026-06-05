@@ -1,6 +1,7 @@
-# Claude-related files
+# Claude Code
 .claude/
 CLAUDE.md
+.claudeignore
 PLANNING.md
 .claude*
 claude*
